@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Matchlogg – ranked 2v2</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1f5fe0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef2f8;--surface:#fff;--text:#101828;--muted:#5b6678;--line:#d6dde9;--blue:#1f5fe0;--orange:#d9560a;--blue-soft:#dbe7ff;--orange-soft:#ffe4d2;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1220;--surface:#141d30;--text:#e8edf6;--muted:#93a0b6;--line:#26334d;--blue:#4b86ff;--orange:#ff8a3d;--blue-soft:#1b2c52;--orange-soft:#4a2a14;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0b1220;--surface:#141d30;--text:#e8edf6;--muted:#93a0b6;--line:#26334d;--blue:#4b86ff;--orange:#ff8a3d;--blue-soft:#1b2c52;--orange-soft:#4a2a14;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:640px;margin:0 auto;padding:24px 16px 48px}
+h1{font:800 28px/1.1 "Barlow Condensed",Impact,sans-serif;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+.score{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.pct{font:800 76px/1 "Barlow Condensed",Impact,sans-serif}
+.pct small{font-size:36px;color:var(--muted)}
+.rec{font:600 24px/1 "Barlow Condensed",Impact,sans-serif;color:var(--muted)}
+.bar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--line);margin:14px 0 6px}
+.bar i{display:block;height:100%}.bar .w{background:var(--blue)}.bar .l{background:var(--orange)}
+.lbl{display:flex;justify-content:space-between;color:var(--muted);font-size:14px}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+button{font:inherit;cursor:pointer;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--text);padding:10px 14px}
+button:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.big{font:800 30px/1 "Barlow Condensed",Impact,sans-serif;padding:22px 10px;border:0;color:#fff}
+.big.w{background:var(--blue)}.big.l{background:var(--orange)}
+.big:active{transform:scale(.98)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;min-height:30px}
+.chip{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-weight:700;font-size:14px}
+.chip.W{background:var(--blue-soft);color:var(--blue)}.chip.L{background:var(--orange-soft);color:var(--orange)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row button{flex:1}
+.armed{border-color:var(--orange);color:var(--orange)}
+h2{font-size:17px;margin:0 0 10px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center}
+.stats b{display:block;font:800 30px/1.1 "Barlow Condensed",Impact,sans-serif}
+.stats span{color:var(--muted);font-size:14px}
+.wk{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:10px 0;border-top:1px solid var(--line)}
+.wk:first-of-type{border-top:0}
+.wk .bar{grid-column:1/-1;height:8px;margin:6px 0 0}
+.up{color:var(--blue)}.down{color:var(--orange)}
+.empty{color:var(--muted);margin:0}
+select{font:inherit;flex:1;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--text)}
+select:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.big:active{transform:none}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Matchlogg</h1>
+  <p class="sub">Ranked 2v2. Tryck efter varje match, avsluta veckan när den är slut.</p>
+
+  <section class="card" aria-live="polite">
+    <div class="score"><div class="pct" id="pct">–</div><div class="rec" id="rec">0 vinster, 0 förluster</div></div>
+    <div class="bar"><i class="w" id="bw" style="width:0"></i><i class="l" id="bl" style="width:0"></i></div>
+    <div class="lbl"><span>Vecka som pågår</span><span id="streak"></span></div>
+  </section>
+
+  <section class="card">
+    <h2>Min rank</h2>
+    <div class="row"><select id="tier" aria-label="Rank"></select><select id="div" aria-label="Division"></select></div>
+    <p class="empty" id="goal" style="margin-top:10px"></p>
+  </section>
+
+  <div class="btns">
+    <button class="big w" id="win">Vinst</button>
+    <button class="big l" id="loss">Förlust</button>
+  </div>
+
+  <section class="card">
+    <h2>Senaste matcherna</h2>
+    <div class="chips" id="chips"></div>
+    <p class="empty" id="chipsEmpty">Inga matcher loggade ännu. Tryck på Vinst eller Förlust efter din första match.</p>
+  </section>
+
+  <div class="row" style="margin-bottom:16px">
+    <button id="undo">Ångra senaste</button>
+    <button id="endWeek">Avsluta vecka</button>
+  </div>
+
+  <section class="card">
+    <h2>Totalt hittills</h2>
+    <div class="stats">
+      <div><b id="tPct">–</b><span>Vinstprocent</span></div>
+      <div><b id="tGames">0</b><span>Matcher</span></div>
+      <div><b id="tBest">–</b><span>Bästa veckan</span></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Tidigare veckor</h2>
+    <div id="weeks"></div>
+    <p class="empty" id="weeksEmpty">Ingen avslutad vecka ännu. Tryck på Avsluta vecka så sparas veckans resultat här.</p>
+  </section>
+
+  <button id="reset" style="width:100%">Rensa all data</button>
+</main>
+<script>
+const KEY="rl-matchlogg-v1";
+let S={cur:[],weeks:[]};
+try{const r=localStorage.getItem(KEY);if(r){const p=JSON.parse(r);if(p&&Array.isArray(p.cur)&&Array.isArray(p.weeks))S=p}}catch(e){}
+if(!S.rank)S.rank={t:9,d:3};
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const $=id=>document.getElementById(id);
+const pc=(w,l)=>w+l?Math.round(w/(w+l)*100):null;
+const cnt=a=>({w:a.filter(x=>x==="W").length,l:a.filter(x=>x==="L").length});
+const TIERS=[];["Bronze","Silver","Gold","Platinum","Diamond","Champion","Grand Champion"].forEach(n=>[1,2,3].forEach(i=>TIERS.push(n+" "+i)));TIERS.push("Supersonic Legend");
+const rankIdx=r=>r.t>=21?84:r.t*4+(r.d-1);
+const rankName=r=>r.t>=21?TIERS[21]:TIERS[r.t]+", div "+r.d;
+function goalText(){
+  const x=48-rankIdx(S.rank);
+  return x>0?"Du är "+x+(x===1?" division":" divisioner")+" från Diamond 1.":"Du har nått Diamond 1. Dags att sätta ett nytt mål?";
+}
+function streakText(){
+  const c=S.cur;if(!c.length)return"";
+  const last=c[c.length-1];let n=0;
+  for(let i=c.length-1;i>=0&&c[i]===last;i--)n++;
+  return (last==="W"?"Vinstsvit: ":"Förlustsvit: ")+n;
+}
+function render(){
+  const {w,l}=cnt(S.cur),p=pc(w,l),g=w+l;
+  $("tier").value=S.rank.t;$("div").value=S.rank.d;$("div").disabled=S.rank.t>=21;$("goal").textContent=goalText();
+  $("pct").innerHTML=p===null?"–":p+"<small>%</small>";
+  $("rec").textContent=w+(w===1?" vinst, ":" vinster, ")+l+(l===1?" förlust":" förluster");
+  $("bw").style.width=g?w/g*100+"%":"0";
+  $("bl").style.width=g?l/g*100+"%":"0";
+  $("streak").textContent=streakText();
+  $("chips").innerHTML=S.cur.slice(-14).map(x=>'<span class="chip '+x+'">'+(x==="W"?"V":"F")+'</span>').join("");
+  $("chipsEmpty").style.display=g?"none":"block";
+  let tw=w,tl=l,best=null;
+  S.weeks.forEach(k=>{tw+=k.w;tl+=k.l;const q=pc(k.w,k.l);if(q!==null&&(best===null||q>best))best=q});
+  const tp=pc(tw,tl);
+  $("tPct").textContent=tp===null?"–":tp+"%";
+  $("tGames").textContent=tw+tl;
+  $("tBest").textContent=best===null?"–":best+"%";
+  $("weeks").innerHTML=S.weeks.slice().reverse().map((k,i,arr)=>{
+    const q=pc(k.w,k.l),older=arr[i+1],oq=older?pc(older.w,older.l):null;
+    let d="";
+    if(q!==null&&oq!==null){const x=q-oq;d=x>0?'<span class="up">+'+x+' procentenheter</span>':x<0?'<span class="down">'+x+' procentenheter</span>':'<span>Oförändrat</span>'}
+    const t=k.w+k.l;let rk="";
+    if(k.rank){rk=rankName(k.rank);if(older&&older.rank){const x=rankIdx(k.rank)-rankIdx(older.rank);rk+=x>0?' <span class="up">(+'+x+(x===1?" division":" divisioner")+')</span>':x<0?' <span class="down">('+x+(x===-1?" division":" divisioner")+')</span>':" (oförändrad)"}}
+    return '<div class="wk"><div><b>'+k.date+'</b> · '+k.w+' V, '+k.l+' F</div><div><b>'+(q===null?"–":q+"%")+'</b></div>'
+      +'<div class="lbl" style="grid-column:1/-1"><span>'+rk+'</span><span>'+d+'</span></div>'
+      +'<div class="bar"><i class="w" style="width:'+(t?k.w/t*100:0)+'%"></i><i class="l" style="width:'+(t?k.l/t*100:0)+'%"></i></div></div>';
+  }).join("");
+  $("weeksEmpty").style.display=S.weeks.length?"none":"block";
+}
+function add(r){S.cur.push(r);save();render()}
+$("win").onclick=()=>add("W");
+$("loss").onclick=()=>add("L");
+$("undo").onclick=()=>{S.cur.pop();save();render()};
+function twoStep(btn,idle,armedText,action){
+  let t=null;
+  btn.onclick=()=>{
+    if(t){clearTimeout(t);t=null;btn.textContent=idle;btn.classList.remove("armed");action();return}
+    btn.textContent=armedText;btn.classList.add("armed");
+    t=setTimeout(()=>{t=null;btn.textContent=idle;btn.classList.remove("armed")},4000);
+  };
+}
+twoStep($("endWeek"),"Avsluta vecka","Tryck igen för att avsluta",()=>{
+  const {w,l}=cnt(S.cur);
+  if(!(w+l))return;
+  const d=new Date().toLocaleDateString("sv-SE",{day:"numeric",month:"short"});
+  S.weeks.push({date:d,w,l,rank:{t:S.rank.t,d:S.rank.d}});S.cur=[];save();render();
+});
+twoStep($("reset"),"Rensa all data","Tryck igen för att radera allt",()=>{S={cur:[],weeks:[],rank:{t:9,d:3}};save();render()});
+TIERS.forEach((n,i)=>$("tier").add(new Option(n,i)));
+[1,2,3,4].forEach(i=>$("div").add(new Option("Division "+i,i)));
+$("tier").onchange=()=>{S.rank.t=+$("tier").value;save();render()};
+$("div").onchange=()=>{S.rank.d=+$("div").value;save();render()};
+render();
+if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0){navigator.serviceWorker.register("sw.js").catch(()=>{})}
+</script>
+</body>
+</html>
