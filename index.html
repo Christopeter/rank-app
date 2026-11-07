@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RankUp – ranked 2v2</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1f5fe0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef2f8;--surface:#fff;--text:#101828;--muted:#5b6678;--line:#d6dde9;--blue:#1f5fe0;--orange:#d9560a;--blue-soft:#dbe7ff;--orange-soft:#ffe4d2;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1220;--surface:#141d30;--text:#e8edf6;--muted:#93a0b6;--line:#26334d;--blue:#4b86ff;--orange:#ff8a3d;--blue-soft:#1b2c52;--orange-soft:#4a2a14;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0b1220;--surface:#141d30;--text:#e8edf6;--muted:#93a0b6;--line:#26334d;--blue:#4b86ff;--orange:#ff8a3d;--blue-soft:#1b2c52;--orange-soft:#4a2a14;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:640px;margin:0 auto;padding:24px 16px 48px}
+h1{font:800 28px/1.1 "Barlow Condensed",Impact,sans-serif;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+.score{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.pct{font:800 76px/1 "Barlow Condensed",Impact,sans-serif}
+.pct small{font-size:36px;color:var(--muted)}
+.rec{font:600 24px/1 "Barlow Condensed",Impact,sans-serif;color:var(--muted)}
+.bar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--line);margin:14px 0 6px}
+.bar i{display:block;height:100%}.bar .w{background:var(--blue)}.bar .l{background:var(--orange)}
+.lbl{display:flex;justify-content:space-between;color:var(--muted);font-size:14px}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+button{font:inherit;cursor:pointer;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--text);padding:10px 14px}
+button:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.big{font:800 30px/1 "Barlow Condensed",Impact,sans-serif;padding:22px 10px;border:0;color:#fff}
+.big.w{background:var(--blue)}.big.l{background:var(--orange)}
+.big:active{transform:scale(.98)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;min-height:30px}
+.chip{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-weight:700;font-size:14px}
+.chip.W{background:var(--blue-soft);color:var(--blue)}.chip.L{background:var(--orange-soft);color:var(--orange)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row button{flex:1}
+.armed{border-color:var(--orange);color:var(--orange)}
+h2{font-size:17px;margin:0 0 10px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center}
+.stats b{display:block;font:800 30px/1.1 "Barlow Condensed",Impact,sans-serif}
+.stats span{color:var(--muted);font-size:14px}
+.wk{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:10px 0;border-top:1px solid var(--line)}
+.wk:first-of-type{border-top:0}
+.wk .bar{grid-column:1/-1;height:8px;margin:6px 0 0}
+.up{color:var(--blue)}.down{color:var(--orange)}
+.empty{color:var(--muted);margin:0}
+select{font:inherit;flex:1;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--text)}
+select:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:11;background:var(--bg);border-bottom:1px solid var(--line)}
+.tabs div{max-width:640px;margin:0 auto;display:flex;gap:6px;padding:10px 16px}
+.tabs button{flex:1;font:800 20px/1 "Barlow Condensed",Impact,sans-serif;letter-spacing:.05em;text-transform:uppercase;padding:12px}
+.tabs button[aria-selected="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:12}
+.ringrow{display:flex;gap:18px;align-items:center}
+.ring{--p:0;width:96px;height:96px;border-radius:50%;background:conic-gradient(var(--blue) calc(var(--p)*1%),var(--line) 0);display:grid;place-items:center;flex:none}
+.ring span{width:74px;height:74px;border-radius:50%;background:var(--surface);display:grid;place-items:center;font:800 28px/1 "Barlow Condensed",Impact,sans-serif}
+.focus{background:var(--blue-soft);border-radius:12px;padding:10px 12px;margin-top:14px}
+.focus .lbl{align-items:center;margin-bottom:2px}
+.it{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}
+.it input{width:22px;height:22px;accent-color:var(--blue);margin-top:2px;flex:none}
+.it .tx{flex:1}.it em{display:block;color:var(--muted);font-style:normal;font-size:14px}
+.it.on .tx b{text-decoration:line-through;color:var(--muted);font-weight:500}
+.mn{color:var(--muted);font-size:14px;white-space:nowrap}
+.sh{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.sh h2{margin:0}
+.sec.full{border-color:var(--blue)}
+.sbar{height:6px;border-radius:3px;background:var(--line);margin:8px 0 4px}.sbar i{display:block;height:100%;border-radius:3px;background:var(--blue)}
+.in{font:inherit;width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)}
+.er{display:flex;gap:8px;margin-top:10px}.er .mi{width:72px;flex:none}.hint{margin-top:6px;font-size:14px}
+.x{flex:none;padding:8px 12px}
+.tbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:2px solid var(--blue);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))}
+.tin{max-width:640px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.tin .row{flex:none}.tin .row button{flex:none}
+.clock{font:800 44px/1 "Barlow Condensed",Impact,sans-serif;font-variant-numeric:tabular-nums}
+.tbar .sbar{max-width:640px;margin:10px auto 0}
+.tm{flex:none;padding:6px 12px;border-radius:10px;color:var(--blue);font-weight:700}
+body.timing main{padding-bottom:200px}
+@media (prefers-reduced-motion:reduce){.big:active{transform:none}}
+</style>
+</head>
+<body>
+<nav class="tabs" role="tablist"><div>
+  <button id="tabLog" role="tab" aria-selected="true">Matchlogg</button>
+  <button id="tabTrain" role="tab" aria-selected="false">Träning</button>
+</div></nav>
+<main>
+<div id="vLog">
+  <h1>Matchlogg</h1>
+  <p class="sub">Ranked 2v2. Tryck efter varje match, avsluta veckan när den är slut.</p>
+
+  <section class="card" aria-live="polite">
+    <div class="score"><div class="pct" id="pct">–</div><div class="rec" id="rec">0 vinster, 0 förluster</div></div>
+    <div class="bar"><i class="w" id="bw" style="width:0"></i><i class="l" id="bl" style="width:0"></i></div>
+    <div class="lbl"><span>Vecka som pågår</span><span id="streak"></span></div>
+  </section>
+
+  <section class="card">
+    <h2>Min rank</h2>
+    <div class="row"><select id="tier" aria-label="Rank"></select><select id="div" aria-label="Division"></select></div>
+    <p class="empty" id="goal" style="margin-top:10px"></p>
+  </section>
+
+  <div class="btns">
+    <button class="big w" id="win">Vinst</button>
+    <button class="big l" id="loss">Förlust</button>
+  </div>
+
+  <section class="card">
+    <h2>Senaste matcherna</h2>
+    <div class="chips" id="chips"></div>
+    <p class="empty" id="chipsEmpty">Inga matcher loggade ännu. Tryck på Vinst eller Förlust efter din första match.</p>
+  </section>
+
+  <div class="row" style="margin-bottom:16px">
+    <button id="undo">Ångra senaste</button>
+    <button id="endWeek">Avsluta vecka</button>
+  </div>
+
+  <section class="card">
+    <h2>Totalt hittills</h2>
+    <div class="stats">
+      <div><b id="tPct">–</b><span>Vinstprocent</span></div>
+      <div><b id="tGames">0</b><span>Matcher</span></div>
+      <div><b id="tBest">–</b><span>Bästa veckan</span></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Tidigare veckor</h2>
+    <div id="weeks"></div>
+    <p class="empty" id="weeksEmpty">Ingen avslutad vecka ännu. Tryck på Avsluta vecka så sparas veckans resultat här.</p>
+  </section>
+
+  <button id="reset" style="width:100%">Rensa all data</button>
+</div>
+
+<div id="vTrain" hidden>
+  <h1>Träningspass</h1>
+  <p class="sub">Ditt Freeplay-pass. Bocka av när du kör och ändra upplägget som du vill.</p>
+  <section class="card" aria-live="polite">
+    <div class="ringrow"><div class="ring" id="ring"><span id="ringTxt">0%</span></div>
+      <div><b id="tSum"></b><p class="empty" id="tMsg" style="margin-top:4px"></p></div></div>
+    <div class="focus"><div class="lbl"><span>Fokus i dina rankade matcher</span><button id="nf" style="padding:2px 12px">Nytt</button></div><b id="tFocus"></b></div>
+    <p class="empty" id="tLog" style="margin-top:12px;font-size:14px"></p>
+  </section>
+  <div class="row" style="margin-bottom:16px"><button id="editBtn"></button><button id="finish">Slutför pass</button></div>
+  <div id="secs"></div>
+  <div id="editTools" class="row" hidden><button id="addSec">+ Ny del</button><button id="defBtn">Återställ standardpass</button></div>
+</div>
+</main>
+<div id="timer" class="tbar" hidden role="timer">
+  <div class="tin"><div><b id="tName"></b><div class="clock" id="tClock">00:00</div></div>
+    <div class="row"><button id="tPause">Pausa</button><button id="tPlus">+1 min</button><button id="tStop">Stoppa</button></div></div>
+  <div class="sbar"><i id="tBar" style="width:0"></i></div>
+</div>
+<script>
+const KEY="rl-matchlogg-v1";
+let S={cur:[],weeks:[]};
+try{const r=localStorage.getItem(KEY);if(r){const p=JSON.parse(r);if(p&&Array.isArray(p.cur)&&Array.isArray(p.weeks))S=p}}catch(e){}
+if(!S.rank)S.rank={t:9,d:3};
+if(!S.train)S.train=defTrain();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const $=id=>document.getElementById(id);
+const pc=(w,l)=>w+l?Math.round(w/(w+l)*100):null;
+const cnt=a=>({w:a.filter(x=>x==="W").length,l:a.filter(x=>x==="L").length});
+const TIERS=[];["Bronze","Silver","Gold","Platinum","Diamond","Champion","Grand Champion"].forEach(n=>[1,2,3].forEach(i=>TIERS.push(n+" "+i)));TIERS.push("Supersonic Legend");
+const rankIdx=r=>r.t>=21?84:r.t*4+(r.d-1);
+const rankName=r=>r.t>=21?TIERS[21]:TIERS[r.t]+", div "+r.d;
+function goalText(){
+  const x=48-rankIdx(S.rank);
+  return x>0?"Du är "+x+(x===1?" division":" divisioner")+" från Diamond 1.":"Du har nått Diamond 1. Dags att sätta ett nytt mål?";
+}
+function streakText(){
+  const c=S.cur;if(!c.length)return"";
+  const last=c[c.length-1];let n=0;
+  for(let i=c.length-1;i>=0&&c[i]===last;i--)n++;
+  return (last==="W"?"Vinstsvit: ":"Förlustsvit: ")+n;
+}
+function render(){
+  const {w,l}=cnt(S.cur),p=pc(w,l),g=w+l;
+  $("tier").value=S.rank.t;$("div").value=S.rank.d;$("div").disabled=S.rank.t>=21;$("goal").textContent=goalText();
+  $("pct").innerHTML=p===null?"–":p+"<small>%</small>";
+  $("rec").textContent=w+(w===1?" vinst, ":" vinster, ")+l+(l===1?" förlust":" förluster");
+  $("bw").style.width=g?w/g*100+"%":"0";
+  $("bl").style.width=g?l/g*100+"%":"0";
+  $("streak").textContent=streakText();
+  $("chips").innerHTML=S.cur.slice(-14).map(x=>'<span class="chip '+x+'">'+(x==="W"?"V":"F")+'</span>').join("");
+  $("chipsEmpty").style.display=g?"none":"block";
+  let tw=w,tl=l,best=null;
+  S.weeks.forEach(k=>{tw+=k.w;tl+=k.l;const q=pc(k.w,k.l);if(q!==null&&(best===null||q>best))best=q});
+  const tp=pc(tw,tl);
+  $("tPct").textContent=tp===null?"–":tp+"%";
+  $("tGames").textContent=tw+tl;
+  $("tBest").textContent=best===null?"–":best+"%";
+  $("weeks").innerHTML=S.weeks.slice().reverse().map((k,i,arr)=>{
+    const q=pc(k.w,k.l),older=arr[i+1],oq=older?pc(older.w,older.l):null;
+    let d="";
+    if(q!==null&&oq!==null){const x=q-oq;d=x>0?'<span class="up">+'+x+' procentenheter</span>':x<0?'<span class="down">'+x+' procentenheter</span>':'<span>Oförändrat</span>'}
+    const t=k.w+k.l;let rk="";
+    if(k.rank){rk=rankName(k.rank);if(older&&older.rank){const x=rankIdx(k.rank)-rankIdx(older.rank);rk+=x>0?' <span class="up">(+'+x+(x===1?" division":" divisioner")+')</span>':x<0?' <span class="down">('+x+(x===-1?" division":" divisioner")+')</span>':" (oförändrad)"}}
+    return '<div class="wk"><div><b>'+k.date+'</b> · '+k.w+' V, '+k.l+' F</div><div><b>'+(q===null?"–":q+"%")+'</b></div>'
+      +'<div class="lbl" style="grid-column:1/-1"><span>'+rk+'</span><span>'+d+'</span></div>'
+      +'<div class="bar"><i class="w" style="width:'+(t?k.w/t*100:0)+'%"></i><i class="l" style="width:'+(t?k.l/t*100:0)+'%"></i></div></div>';
+  }).join("");
+  $("weeksEmpty").style.display=S.weeks.length?"none":"block";
+}
+function add(r){S.cur.push(r);save();render()}
+$("win").onclick=()=>add("W");
+$("loss").onclick=()=>add("L");
+$("undo").onclick=()=>{S.cur.pop();save();render()};
+function twoStep(btn,idle,armedText,action){
+  let t=null;
+  btn.onclick=()=>{
+    if(t){clearTimeout(t);t=null;btn.textContent=idle;btn.classList.remove("armed");action();return}
+    btn.textContent=armedText;btn.classList.add("armed");
+    t=setTimeout(()=>{t=null;btn.textContent=idle;btn.classList.remove("armed")},4000);
+  };
+}
+twoStep($("endWeek"),"Avsluta vecka","Tryck igen för att avsluta",()=>{
+  const {w,l}=cnt(S.cur);
+  if(!(w+l))return;
+  const d=new Date().toLocaleDateString("sv-SE",{day:"numeric",month:"short"});
+  S.weeks.push({date:d,w,l,rank:{t:S.rank.t,d:S.rank.d}});S.cur=[];save();render();
+});
+twoStep($("reset"),"Rensa all data","Tryck igen för att radera allt",()=>{S={cur:[],weeks:[],rank:{t:9,d:3},train:S.train};save();render()});
+TIERS.forEach((n,i)=>$("tier").add(new Option(n,i)));
+[1,2,3,4].forEach(i=>$("div").add(new Option("Division "+i,i)));
+$("tier").onchange=()=>{S.rank.t=+$("tier").value;save();render()};
+$("div").onchange=()=>{S.rank.d=+$("div").value;save();render()};
+function uid(){return Math.random().toString(36).slice(2,8)}
+function defTrain(){
+  const I=(t,m,h)=>({id:uid(),t,m,h:h||"",d:false});
+  return {focus:0,log:[],secs:[
+    {id:uid(),n:"Uppvärmning",items:[I("Plocka stora boostpads utan att tappa fart",2),I("Powerslide-svängar och wavedash",1),I("Speedflip-kickoffs från alla startpositioner",2)]},
+    {id:uid(),n:"Ground consistency",items:[I("Första touch mot backboard och väggar",7,"Ta emot varje studs utan att knuffa iväg bollen."),I("Rena träffar i fart",8,"10 kontrollerade skott i rad mot tomt mål. Missar du, börja om."),I("Vägg till mark",5,"Landa rent på hjulen och fortsätt spela direkt.")]},
+    {id:uid(),n:"Shadow defense",items:[I("Sista man mot All-Star-bot",15,"1–2 bilängder bakom bollbäraren, matcha farten, pressa åt sidan och utmana bara vid tydlig fördel.")]},
+    {id:uid(),n:"Dina mekaniker",items:[I("Wallace flick",4,"5–10 försök, bara för att hålla den vass."),I("Half-flips och aerials",6)]},
+    {id:uid(),n:"Avslutning",items:[I("1–2 rankade 2v2 med ett fokus",10,"Välj ett enda mål per match."),I("Titta på en förlust i replay",5,"Räkna mål som kom av rotation eller boost.")]}
+  ]};
+}
+const FOCI=["Alltid veta vem som är sista man","Aldrig gå på bollen med under 30 boost","Säg “I got it!” varje gång du går på en boll","Släpp 50/50 när lagkamraten är närmare","Plocka små pads på vägen tillbaka","Ta ett andetag efter varje insläppt mål"];
+const esc=x=>String(x).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let edit=false;
+const TR=()=>S.train;
+function renderT(){
+  const T=TR(),all=T.secs.flatMap(x=>x.items),tot=all.reduce((a,i)=>a+i.m,0),dn=all.filter(i=>i.d),dm=dn.reduce((a,i)=>a+i.m,0);
+  const p=all.length?Math.round(dn.length/all.length*100):0;
+  $("ring").style.setProperty("--p",p);$("ringTxt").textContent=p+"%";
+  $("tSum").textContent=dn.length+" av "+all.length+" övningar klara · "+(tot-dm)+" min kvar";
+  $("tMsg").textContent=p===0?"Redo när du är det. Börja med uppvärmningen.":p<50?"Bra start, fortsätt i samma tempo.":p<100?"Över halvvägs. Dra i mål!":"Passet är klart. Bra jobbat!";
+  $("tFocus").textContent=FOCI[T.focus%FOCI.length];
+  const wk=T.log.filter(d=>Date.now()-new Date(d).getTime()<7*864e5).length;
+  $("tLog").textContent="Pass senaste 7 dagarna: "+wk+" · Totalt: "+T.log.length+(T.log.length?" · Senast: "+T.log[T.log.length-1]:"");
+  $("finish").style.display=dn.length&&!edit?"":"none";
+  $("editBtn").textContent=edit?"Klar med redigering":"Redigera pass";
+  $("editTools").hidden=!edit;
+  $("secs").innerHTML=T.secs.map(sc=>{
+    const n=sc.items.length,d=sc.items.filter(i=>i.d).length,m=sc.items.reduce((a,i)=>a+i.m,0);
+    const head=edit?'<input class="in" data-f="sn" data-s="'+sc.id+'" value="'+esc(sc.n)+'" aria-label="Namn på del">':'<div class="sh"><h2>'+esc(sc.n)+'</h2><span class="mn">'+d+"/"+n+" · "+m+' min</span></div>';
+    const bar=edit?"":'<div class="sbar"><i style="width:'+(n?d/n*100:0)+'%"></i></div>';
+    const items=sc.items.map(i=>{
+      const a='data-s="'+sc.id+'" data-i="'+i.id+'"';
+      if(edit)return '<div class="er"><input class="in" '+a+' data-f="t" value="'+esc(i.t)+'" aria-label="Övning"><input class="in mi" type="number" min="0" max="120" '+a+' data-f="m" value="'+i.m+'" aria-label="Minuter"><button class="x" data-a="delI" '+a+' aria-label="Ta bort övning">✕</button></div><input class="in hint" '+a+' data-f="h" value="'+esc(i.h)+'" placeholder="Tips (valfritt)" aria-label="Tips">';
+      return '<label class="it'+(i.d?" on":"")+'"><input type="checkbox" '+a+' data-a="chk"'+(i.d?" checked":"")+'><span class="tx"><b>'+esc(i.t)+'</b>'+(i.h?"<em>"+esc(i.h)+"</em>":"")+'</span><span class="mn">'+i.m+' min</span>'+(i.m>0?'<button class="tm" data-a="tim" '+a+' aria-label="'+(act(i)?(TM.paused?"Fortsätt timer":"Pausa timer"):"Starta timer")+'">'+(act(i)&&!TM.paused?"❚❚":"▶")+'</button>':"")+'</label>' ;
+    }).join("");
+    const tools=edit?'<div class="row" style="margin-top:10px"><button data-a="addI" data-s="'+sc.id+'">+ Lägg till övning</button><button data-a="delS" data-s="'+sc.id+'">Ta bort del</button></div>':"";
+    return '<section class="card sec'+(n&&d===n&&!edit?" full":"")+'">'+head+bar+items+tools+"</section>";
+  }).join("");
+}
+function secOf(el){return TR().secs.find(x=>x.id===el.dataset.s)}
+$("secs").addEventListener("change",e=>{
+  const t=e.target,sc=secOf(t);if(!sc)return;
+  const it=sc.items.find(x=>x.id===t.dataset.i);
+  if(t.dataset.a==="chk"&&it)it.d=t.checked;
+  else if(t.dataset.f==="sn")sc.n=t.value;
+  else if(it&&t.dataset.f==="t")it.t=t.value;
+  else if(it&&t.dataset.f==="m")it.m=Math.max(0,Math.min(120,Math.round(+t.value)||0));
+  else if(it&&t.dataset.f==="h")it.h=t.value;
+  else return;
+  save();renderT();
+});
+$("secs").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-a]");if(!b)return;
+  const sc=secOf(b),T=TR();if(!sc)return;
+  if(b.dataset.a==="addI")sc.items.push({id:uid(),t:"Ny övning",m:5,h:"",d:false});
+  else if(b.dataset.a==="delI")sc.items=sc.items.filter(x=>x.id!==b.dataset.i);
+  else if(b.dataset.a==="delS")T.secs=T.secs.filter(x=>x.id!==sc.id);
+  else if(b.dataset.a==="tim"){const it=sc.items.find(x=>x.id===b.dataset.i);if(it){if(act(it))pauseT();else startT(sc,it)}return}
+  else return;
+  save();renderT();
+});
+$("editBtn").onclick=()=>{edit=!edit;renderT()};
+$("addSec").onclick=()=>{TR().secs.push({id:uid(),n:"Ny del",items:[]});save();renderT()};
+$("nf").onclick=()=>{TR().focus++;save();renderT()};
+twoStep($("defBtn"),"Återställ standardpass","Tryck igen för att återställa",()=>{const lg=TR().log;S.train=defTrain();S.train.log=lg;save();renderT()});
+twoStep($("finish"),"Slutför pass","Tryck igen för att logga passet",()=>{const T=TR();T.log.push(new Date().toLocaleDateString("sv-SE"));T.secs.forEach(x=>x.items.forEach(i=>i.d=false));T.focus++;save();renderT()});
+let TM=null,AC=null,WL=null;const T0=document.title;
+function unlock(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();AC.resume()}catch(e){}}
+function beep(){try{unlock();[0,.35,.7].forEach(t=>{const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=880;g.gain.value=.15;o.connect(g);g.connect(AC.destination);o.start(AC.currentTime+t);o.stop(AC.currentTime+t+.2)})}catch(e){}if(navigator.vibrate)navigator.vibrate([200,100,200])}
+async function wl(on){try{if(on&&navigator.wakeLock)WL=await navigator.wakeLock.request("screen");else if(WL){await WL.release();WL=null}}catch(e){}}
+const clk=ms=>{const q=Math.max(0,Math.ceil(ms/1000));return String(Math.floor(q/60)).padStart(2,"0")+":"+String(q%60).padStart(2,"0")};
+function drawT(){
+  if(!TM){$("timer").hidden=true;document.body.classList.remove("timing");document.title=T0;return}
+  const left=TM.done?0:TM.paused?TM.left:TM.end-Date.now();
+  $("timer").hidden=false;document.body.classList.add("timing");
+  $("tName").textContent=(TM.done?"Klart: ":"")+TM.name;
+  $("tClock").textContent=clk(left);
+  $("tBar").style.width=Math.min(100,Math.max(0,(1-left/TM.total)*100))+"%";
+  $("tPause").style.display=$("tPlus").style.display=TM.done?"none":"";
+  $("tPause").textContent=TM.paused?"Fortsätt":"Pausa";
+  $("tStop").textContent=TM.done?"Stäng":"Stoppa";
+  document.title=TM.done?T0:clk(left)+" – "+TM.name;
+}
+function doneT(){
+  TM.done=true;beep();wl(false);
+  const sc=TR().secs.find(x=>x.id===TM.sid),it=sc&&sc.items.find(x=>x.id===TM.iid);
+  if(it){it.d=true;save();renderT()}
+  drawT();
+}
+setInterval(()=>{if(TM&&!TM.done&&!TM.paused){if(TM.end-Date.now()<=0)doneT();else drawT()}},250);
+function startT(sc,it){unlock();wl(true);TM={name:it.t,sid:sc.id,iid:it.id,total:it.m*60000,end:Date.now()+it.m*60000,paused:false,left:0,done:false};drawT();renderT()}
+function pauseT(){if(!TM)return;if(TM.paused){TM.end=Date.now()+TM.left;TM.paused=false}else{TM.left=TM.end-Date.now();TM.paused=true}drawT();renderT()}
+$("tPause").onclick=pauseT;
+const act=i=>TM&&!TM.done&&TM.iid===i.id;
+$("tPlus").onclick=()=>{if(!TM)return;TM.total+=60000;if(TM.paused)TM.left+=60000;else TM.end+=60000;drawT()};
+$("tStop").onclick=()=>{TM=null;wl(false);drawT();renderT()};
+function show(v){
+  $("vLog").hidden=v!=="log";$("vTrain").hidden=v!=="train";
+  $("tabLog").setAttribute("aria-selected",v==="log");$("tabTrain").setAttribute("aria-selected",v==="train");
+  try{localStorage.setItem("rl-tab",v)}catch(e){}
+  window.scrollTo(0,0);
+}
+$("tabLog").onclick=()=>show("log");$("tabTrain").onclick=()=>show("train");
+render();renderT();
+try{if(localStorage.getItem("rl-tab")==="train")show("train")}catch(e){}
+if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0){navigator.serviceWorker.register("sw.js").catch(()=>{})}
+</script>
+</body>
+</html>
