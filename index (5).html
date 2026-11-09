@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RankUp – ranked 2v2</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1f5fe0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef2f8;--surface:#fff;--text:#101828;--muted:#5b6678;--line:#d6dde9;--blue:#1f5fe0;--orange:#d9560a;--blue-soft:#dbe7ff;--orange-soft:#ffe4d2;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1220;--surface:#141d30;--text:#e8edf6;--muted:#93a0b6;--line:#26334d;--blue:#4b86ff;--orange:#ff8a3d;--blue-soft:#1b2c52;--orange-soft:#4a2a14;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0b1220;--surface:#141d30;--text:#e8edf6;--muted:#93a0b6;--line:#26334d;--blue:#4b86ff;--orange:#ff8a3d;--blue-soft:#1b2c52;--orange-soft:#4a2a14;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:640px;margin:0 auto;padding:24px 16px 48px}
+h1{font:800 28px/1.1 "Barlow Condensed",Impact,sans-serif;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+.score{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.pct{font:800 76px/1 "Barlow Condensed",Impact,sans-serif}
+.pct small{font-size:36px;color:var(--muted)}
+.rec{font:600 24px/1 "Barlow Condensed",Impact,sans-serif;color:var(--muted)}
+.bar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--line);margin:14px 0 6px}
+.bar i{display:block;height:100%}.bar .w{background:var(--blue)}.bar .l{background:var(--orange)}
+.lbl{display:flex;justify-content:space-between;color:var(--muted);font-size:14px}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+button{font:inherit;cursor:pointer;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--text);padding:10px 14px}
+button:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.big{font:800 30px/1 "Barlow Condensed",Impact,sans-serif;padding:22px 10px;border:0;color:#fff}
+.big.w{background:var(--blue)}.big.l{background:var(--orange)}
+.big:active{transform:scale(.98)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;min-height:30px}
+.chip{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-weight:700;font-size:14px}
+.chip.W{background:var(--blue-soft);color:var(--blue)}.chip.L{background:var(--orange-soft);color:var(--orange)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row button{flex:1}
+.armed{border-color:var(--orange);color:var(--orange)}
+h2{font-size:17px;margin:0 0 10px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center}
+.stats b{display:block;font:800 30px/1.1 "Barlow Condensed",Impact,sans-serif}
+.stats span{color:var(--muted);font-size:14px}
+.wk{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:10px 0;border-top:1px solid var(--line)}
+.wk:first-of-type{border-top:0}
+.wk .bar{grid-column:1/-1;height:8px;margin:6px 0 0}
+.up{color:var(--blue)}.down{color:var(--orange)}
+.empty{color:var(--muted);margin:0}
+select{font:inherit;flex:1;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--text)}
+select:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:11;background:var(--bg);border-bottom:1px solid var(--line)}
+.tabs div{max-width:640px;margin:0 auto;display:flex;gap:4px;padding:10px 16px;overflow-x:auto;scrollbar-width:none}.tabs div::-webkit-scrollbar{display:none}
+.tabs button{flex:1 1 auto;white-space:nowrap;font:800 clamp(12.5px,3.6vw,20px)/1 "Barlow Condensed",Impact,sans-serif;letter-spacing:.02em;text-transform:uppercase;padding:12px 8px}
+.tabs button[aria-selected="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:12}
+.ringrow{display:flex;gap:18px;align-items:center}
+.ring{--p:0;width:96px;height:96px;border-radius:50%;background:conic-gradient(var(--blue) calc(var(--p)*1%),var(--line) 0);display:grid;place-items:center;flex:none}
+.ring span{width:74px;height:74px;border-radius:50%;background:var(--surface);display:grid;place-items:center;font:800 28px/1 "Barlow Condensed",Impact,sans-serif}
+.focus{background:var(--blue-soft);border-radius:12px;padding:10px 12px;margin-top:14px}
+.focus .lbl{align-items:center;margin-bottom:2px}
+.it{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}
+.it input{width:22px;height:22px;accent-color:var(--blue);margin-top:2px;flex:none}
+.it .tx{flex:1}.it em{display:block;color:var(--muted);font-style:normal;font-size:14px}
+.it.on .tx b{text-decoration:line-through;color:var(--muted);font-weight:500}
+.mn{color:var(--muted);font-size:14px;white-space:nowrap}
+.sh{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.sh h2{margin:0}
+.sec.full{border-color:var(--blue)}
+.sbar{height:6px;border-radius:3px;background:var(--line);margin:8px 0 4px}.sbar i{display:block;height:100%;border-radius:3px;background:var(--blue)}
+.in{font:inherit;width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)}
+.er{display:flex;gap:8px;margin-top:10px}.er .mi{width:72px;flex:none}.hint{margin-top:6px;font-size:14px}
+.x{flex:none;padding:8px 12px}
+.tbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:2px solid var(--blue);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))}
+.tin{max-width:640px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.tin .row{flex:none}.tin .row button{flex:none}
+.clock{font:800 44px/1 "Barlow Condensed",Impact,sans-serif;font-variant-numeric:tabular-nums}
+.tbar .sbar{max-width:640px;margin:10px auto 0}
+.tm{flex:none;padding:6px 12px;border-radius:10px;color:var(--blue);font-weight:700}
+body.timing main{padding-bottom:200px}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center}
+.day{border:1px solid var(--line);border-radius:10px;padding:8px 2px;font-size:13px;color:var(--muted)}
+.day b{display:block;font:800 19px/1.1 "Barlow Condensed",Impact,sans-serif;color:var(--text)}
+.day.today{border-color:var(--blue);background:var(--blue-soft)}.day.fut{opacity:.45}
+.mini{height:6px;border-radius:3px;background:var(--line);margin:6px 4px;overflow:hidden;display:flex}.mini i{display:block;height:100%}
+.dots{min-height:14px;color:var(--blue);line-height:1;font-size:12px}
+.badges{display:flex;flex-wrap:wrap;gap:8px}
+.bd{flex:1 1 90px;border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center;font-size:13px;opacity:.4}
+.bd.on{opacity:1;border-color:var(--blue);background:var(--blue-soft)}.bd i{display:block;font-style:normal;font-size:24px}
+.cmpt{width:100%;border-collapse:collapse;font-size:14px}
+.cmpt th,.cmpt td{padding:8px 4px;text-align:right}.cmpt th:first-child,.cmpt td:first-child{text-align:left}
+.cmpt td{border-top:1px solid var(--line)}.cmpt th{color:var(--muted);font-weight:600}
+.chart{display:flex;align-items:flex-end;gap:6px;height:170px;overflow-x:auto;padding-top:6px}
+.col{flex:1 0 36px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;font-size:12px;color:var(--muted);gap:2px}
+.col i{display:block;width:100%;border-radius:6px 6px 0 0;min-height:2px}
+.col.cur i{outline:2px solid var(--text)}
+.ins{margin:0;padding-left:18px}.ins li{margin-bottom:8px}
+.stp{display:flex;align-items:center;gap:8px;margin-top:8px}.stp button{padding:2px 14px}
+.ta{font:13px/1.4 ui-monospace,Menlo,Consolas,monospace;width:100%;min-height:90px;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);margin-top:10px}
+.seg{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.seg button{padding:10px 14px;font-weight:600}
+.seg button[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
+.opt{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.opt button[aria-pressed="true"]{border-color:var(--blue);background:var(--blue-soft);font-weight:700}
+.opt .sw{width:44px;height:44px;border-radius:50%;border:3px solid transparent;padding:0}
+.opt .sw[aria-pressed="true"]{border-color:var(--text)}
+.tg{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line);cursor:pointer}
+.tg input{width:22px;height:22px;accent-color:var(--blue);flex:none}
+.set h3{font-size:15px;margin:16px 0 0;color:var(--muted);font-weight:600}.set h3:first-child{margin-top:0}
+.cta{width:100%;margin-bottom:16px;padding:14px;font-weight:700;border-color:var(--blue);color:var(--blue)}
+.qopt{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;margin-top:8px;padding:14px}
+.qopt.ok{border-color:var(--blue);background:var(--blue-soft);font-weight:700}
+.qopt.no{border-color:var(--orange);background:var(--orange-soft)}
+.qopt:disabled{cursor:default;color:var(--text);opacity:1}
+@media (prefers-reduced-motion:reduce){.big:active{transform:none}}
+</style>
+</head>
+<body>
+<nav class="tabs" role="tablist"><div>
+  <button id="tabLog" role="tab" aria-selected="true">Matchlogg</button>
+  <button id="tabTrain" role="tab" aria-selected="false">Träning</button>
+  <button id="tabStats" role="tab" aria-selected="false">Statistik</button>
+  <button id="tabSet" role="tab" aria-selected="false">Inställningar</button>
+</div></nav>
+<main>
+<div id="vLog">
+  <h1>Matchlogg</h1>
+  <p class="sub">Ranked 2v2. Tryck efter varje match, avsluta veckan när den är slut.</p>
+
+  <section class="card" aria-live="polite">
+    <div class="score"><div class="pct" id="pct">–</div><div class="rec" id="rec">0 vinster, 0 förluster</div></div>
+    <div class="bar"><i class="w" id="bw" style="width:0"></i><i class="l" id="bl" style="width:0"></i></div>
+    <div class="lbl"><span id="wkLbl">Vecka som pågår</span><span id="streak"></span></div>
+  </section>
+
+  <section class="card">
+    <h2>Min rank</h2>
+    <div class="row"><select id="tier" aria-label="Rank"></select><select id="div" aria-label="Division"></select></div>
+    <p class="empty" id="goal" style="margin-top:10px"></p>
+  </section>
+
+  <div class="btns">
+    <button class="big w" id="win">Vinst</button>
+    <button class="big l" id="loss">Förlust</button>
+  </div>
+
+  <section class="card">
+    <h2>Senaste matcherna</h2>
+    <div class="chips" id="chips"></div>
+    <p class="empty" id="chipsEmpty">Inga matcher loggade ännu. Tryck på Vinst eller Förlust efter din första match.</p>
+  </section>
+
+  <div class="row" style="margin-bottom:16px">
+    <button id="undo">Ångra senaste</button>
+  </div>
+
+  <section class="card">
+    <h2>Totalt hittills</h2>
+    <div class="stats">
+      <div><b id="tPct">–</b><span>Vinstprocent</span></div>
+      <div><b id="tGames">0</b><span>Matcher</span></div>
+      <div><b id="tBest">–</b><span>Bästa veckan</span></div>
+    </div>
+  </section>
+
+
+</div>
+
+<div id="vTrain" hidden>
+  <h1>Träningspass</h1>
+  <p class="sub">Ett pass som anpassas efter din rank. Bocka av när du kör och ändra upplägget som du vill.</p>
+  <div class="card" style="padding:14px"><div class="row" style="align-items:center"><select id="gSel" aria-label="Visa pass för rank" style="flex:none;width:auto;min-width:180px"></select><select id="mSel" aria-label="Passets längd" style="flex:none;width:auto;min-width:160px"></select></div><p class="empty" id="gTxt" style="margin-top:10px;font-size:14px"></p></div>
+  <section class="card" aria-live="polite">
+    <div class="ringrow"><div class="ring" id="ring"><span id="ringTxt">0%</span></div>
+      <div><b id="tSum"></b><p class="empty" id="tMsg" style="margin-top:4px"></p></div></div>
+    <div class="focus"><div class="lbl"><span>Fokus i dina rankade matcher</span><button id="nf" style="padding:2px 12px">Nytt</button></div><b id="tFocus"></b></div>
+    <p class="empty" id="tLog" style="margin-top:12px;font-size:14px"></p>
+  </section>
+  <div class="row" style="margin-bottom:16px"><button id="editBtn"></button><button id="finish">Slutför pass</button></div>
+  <button class="cta" id="quizBtn">Quiz: testa din kunskap →</button>
+  <div id="secs"></div>
+  <div id="editTools" class="row" hidden><button id="addSec">+ Ny del</button><button id="defBtn">Återställ standardpass</button></div>
+</div>
+<div id="vQuiz" hidden>
+  <button id="qBack" style="margin-bottom:16px">← Tillbaka till träning</button>
+  <h1>Quiz</h1>
+  <div id="qBody"></div>
+</div>
+<div id="vStats" hidden>
+  <h1>Statistik</h1>
+  <p class="sub" id="sWeek"></p>
+  <div id="sBody"></div>
+</div>
+<div id="vSet" hidden>
+  <h1>Inställningar</h1>
+  <div class="seg" id="setNav"></div>
+  <div id="setDyn" class="set"></div>
+  <div id="pgBackup" hidden>
+  <section class="card">
+    <h2>Säkerhetskopia</h2>
+    <p class="empty" style="font-size:14px;margin-bottom:10px">Spara all din data i en fil eller som text, så kan du flytta den till en ny telefon eller en annan webbläsare.</p>
+    <div class="row"><button id="bkExp">Exportera fil</button><button id="bkCopy">Kopiera som text</button></div>
+    <textarea id="bkTxt" class="ta" placeholder="Klistra in en säkerhetskopia här, eller välj en fil nedan" aria-label="Säkerhetskopia som text"></textarea>
+    <div class="row" style="margin-top:10px"><button id="bkFile">Välj fil</button><button id="bkImp">Importera</button></div>
+    <input type="file" id="bkIn" accept=".json,application/json,text/plain" hidden>
+    <p class="empty" id="bkMsg" style="font-size:14px;margin:10px 0 0" aria-live="polite"></p>
+  </section>
+  <button id="reset" style="width:100%;margin-bottom:16px">Rensa all data</button>
+  </div>
+</div>
+</main>
+<div id="timer" class="tbar" hidden role="timer">
+  <div class="tin"><div><b id="tName"></b><div class="clock" id="tClock">00:00</div></div>
+    <div class="row"><button id="tPause">Pausa</button><button id="tPlus">+1 min</button><button id="tStop">Stoppa</button></div></div>
+  <div class="sbar"><i id="tBar" style="width:0"></i></div>
+</div>
+<script>
+const KEY="rl-matchlogg-v1";
+let S={};
+try{const r=localStorage.getItem(KEY);if(r){const p=JSON.parse(r);if(p&&typeof p==="object")S=p}}catch(e){}
+if(!S.rank)S.rank={t:9,d:3};
+if(!S.train)S.train={focus:0,log:[],plans:{}};
+if(!S.train.plans){S.train.plans={};delete S.train.secs}
+if(!S.games){S.games=(S.cur||[]).map(r=>({r,d:iso(new Date())}));delete S.cur}
+if(!S.legacy){S.legacy=(S.weeks||[]).map(k=>({label:k.date,w:k.w,l:k.l}));delete S.weeks}
+if(!S.rankLog)S.rankLog=[{d:iso(new Date()),t:S.rank.t,v:S.rank.d}];
+if(!S.goal)S.goal=4;
+if(!S.cfg)S.cfg={};
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const $=id=>document.getElementById(id);
+const pc=(w,l)=>w+l?Math.round(w/(w+l)*100):null;
+const cnt=a=>({w:a.filter(x=>x==="W").length,l:a.filter(x=>x==="L").length});
+const TIERS=[];["Bronze","Silver","Gold","Platinum","Diamond","Champion","Grand Champion"].forEach(n=>[1,2,3].forEach(i=>TIERS.push(n+" "+i)));TIERS.push("Supersonic Legend");
+const rankIdx=r=>r.t>=21?84:r.t*4+(r.d-1);
+const rankName=r=>r.t>=21?TIERS[21]:TIERS[r.t]+", div "+r.d;
+function goalText(){
+  const x=48-rankIdx(S.rank);
+  return x>0?"Du är "+x+(x===1?" division":" divisioner")+" från Diamond 1.":"Du har nått Diamond 1. Dags att sätta ett nytt mål?";
+}
+function streakText(){
+  const c=S.games;if(!c.length)return"";
+  const last=c[c.length-1].r;let n=0;
+  for(let i=c.length-1;i>=0&&c[i].r===last;i--)n++;
+  return (last==="W"?"Vinstsvit: ":"Förlustsvit: ")+n;
+}
+function render(){
+  const t=today(),W=weekData(mon(t)),w=W.w,l=W.l,g=W.g.length,p=pc(w,l);
+  $("tier").value=S.rank.t;$("div").value=S.rank.d;$("div").disabled=S.rank.t>=21;$("goal").textContent=goalText();
+  $("pct").innerHTML=p===null?"–":p+"<small>%</small>";
+  $("rec").textContent=w+(w===1?" vinst, ":" vinster, ")+l+(l===1?" förlust":" förluster");
+  $("bw").style.width=g?w/g*100+"%":"0";
+  $("bl").style.width=g?l/g*100+"%":"0";
+  $("wkLbl").textContent="Vecka "+isoWeek(t)+" (mån–sön)";
+  $("streak").textContent=cfg("streak")?streakText():"";
+  $("chips").innerHTML=W.g.slice(-cfg("chips")).map(x=>'<span class="chip '+x.r+'">'+(x.r==="W"?"V":"F")+'</span>').join("");
+  $("chipsEmpty").style.display=g?"none":"block";
+  let tw=S.legacy.reduce((a,k)=>a+k.w,0),tl=S.legacy.reduce((a,k)=>a+k.l,0),best=null;
+  S.games.forEach(x=>x.r==="W"?tw++:tl++);
+  S.legacy.forEach(k=>{const q=pc(k.w,k.l);if(q!==null&&(best===null||q>best))best=q});
+  weeks().forEach(k=>{const q=pc(k.w,k.l);if(q!==null&&(best===null||q>best))best=q});
+  const tp=pc(tw,tl);
+  $("tPct").textContent=tp===null?"–":tp+"%";
+  $("tGames").textContent=tw+tl;
+  $("tBest").textContent=best===null?"–":best+"%";
+}
+function add(r){S.games.push({r,d:today()});save();render()}
+$("win").onclick=()=>add("W");
+$("loss").onclick=()=>add("L");
+$("undo").onclick=()=>{const g=S.games,x=g[g.length-1];if(x&&x.d>=mon(today()))g.pop();save();render()};
+function twoStep(btn,idle,armedText,action){
+  let t=null;
+  btn.onclick=()=>{
+    if(t){clearTimeout(t);t=null;btn.textContent=idle;btn.classList.remove("armed");action();return}
+    btn.textContent=armedText;btn.classList.add("armed");
+    t=setTimeout(()=>{t=null;btn.textContent=idle;btn.classList.remove("armed")},4000);
+  };
+}
+twoStep($("reset"),"Rensa all data","Tryck igen för att radera allt",()=>{S={games:[],legacy:[],rank:{t:9,d:3},rankLog:[{d:iso(new Date()),t:9,v:3}],goal:S.goal,train:S.train,cfg:S.cfg};save();render()});
+TIERS.forEach((n,i)=>$("tier").add(new Option(n,i)));
+[1,2,3,4].forEach(i=>$("div").add(new Option("Division "+i,i)));
+$("tier").onchange=()=>{S.rank.t=+$("tier").value;pushRank();save();render();renderT()};
+$("div").onchange=()=>{S.rank.d=+$("div").value;pushRank();save();render()};
+function uid(){return Math.random().toString(36).slice(2,8)}
+const TCH=m=>["Freeplay-touches",m,"Slå bollen, växla ball cam och car cam, boosta och powerslida. Håll kontroll."];
+const KO=(m,h)=>["Kickoffs",m,h||"Träffa bollen rent vid varje kickoff."];
+const SF=m=>["Speedflip-kickoffs",m,"Träna grunderna i kickoffmiljö. Återställ efter varje träff för fler försök."];
+const RV=m=>["Recoveries: wavedash och half-flip",m,"Landa på hjulen och powerslida. Snabbare tillbaka ger högre tempo."];
+const REP=(m,h)=>["Titta på en förlust i replay",m,h||"Leta efter mål som kom av rotation eller boost."];
+const RK=(m,h)=>["Rankade matcher med ett fokus",m,h||"Välj ett enda mål per match."];
+const G=[
+["Bronze","Fokus: träffa bollen konsekvent, bilkontroll och boost.",[
+ ["Uppvärmning",[["Kör rakt in i bollen om och om igen",4,"Sikta mot nätet och följ efter bollen."],["Powerslide-svängar utan att bromsa",3,"Hoppa, landa, powerslida, gasa. Upprepa."]]],
+ ["Bollkontakt",[["Psyonix Rookie Striker",10,"Kör passen i träningsläget. Mål: förutsägbar träff mot nätet."],["Freeplay: skjut och följ efter",7,"Slå bollen mot väggen, följ efter och träffa den igen."]]],
+ ["Försvar och kickoffs",[["Psyonix Rookie Goalie",8,"Lär dig var du ska stå för att täcka målet."],KO(5)]],
+ ["Boost",[["Plocka stora boostpads på vägen",4,"Kör över dem utan att bromsa. Boost är din viktigaste resurs."]]],
+ ["Avslutning",[RK(10,"Välj ett: träffa bollen rent, eller håll koll på boosten."),REP(5)]]]],
+["Silver","Fokus: kraft och riktning på skotten, första touch och en rejäl snabb aerial.",[
+ ["Uppvärmning",[TCH(5),KO(3,"Träna timing och position.")]],
+ ["Skott och kontroll",[["Powershots",8,"Träffa bollen med fart och riktning mot målet."],["Markskott",7,"Ta emot och skjut rent. Rätt vinkel är viktigare än kraft."],["Första touch på studsar",5,"Ta emot bollen utan att knuffa iväg den."]]],
+ ["Luftspel",[["Snabb aerial",7,"Dubbelhopp, håll boost, air roll för att hålla dig plan. Landa rent efteråt."]]],
+ ["Försvar",[["Psyonix Goalie, Rookie till Pro",8,"Läs skottet och ställ dig rätt innan du går på."],["Rensa bollen ur hörnet",5,"Slå den längs väggen, inte rakt in i den."]]],
+ ["Avslutning",[RK(10),REP(5)]]]],
+["Gold","Fokus: konsistens. Missa färre träffar och släpp in färre mjuka mål.",[
+ ["Uppvärmning",[TCH(5),KO(3)]],
+ ["Konsistens",[["Returer och rebounds",7,"Hamna rätt för returen efter ett skott och dra nytta av den."],["Skott du inte får missa",7,"Fokus på ren träff, inte på svåra vinklar."]]],
+ ["Mekanik",[RV(6),["Grundläggande aerials",8,"Få ren kontakt innan du jagar kraft. Dubbelhopp först, sedan snabb aerial."]]],
+ ["Försvar och hörn",[["Saves och power clears",12,"Här bör mest tid gå på Gold och Platinum: släpp inte in mjuka mål."],["Hörnspel",6,"Läs bollens bana ut ur hörnet innan du går på."]]],
+ ["Avslutning",[RK(10),REP(5)]]]],
+["Platinum","Fokus: första touch i luften, väggläsning och att inte släppa in mjuka mål.",[
+ ["Uppvärmning",[TCH(5),SF(4)]],
+ ["Markspel",[["Dribbling och flick, grunder",8,"Studsdribbling och boll på taket, sedan skott. Kontroll före kraft."],["Backboard reads",8,"Läs bollen när den kommer ner från backboarden och placera dig rätt."]]],
+ ["Luftspel",[["Snabba aerials",8,"Första touchen i luften är det viktigaste. Landa rent efteråt."],["Aerial-skott med kraft",6,"Träffa bollen mot målet, inte bara i bollen."]]],
+ ["Försvar och position",[["Saves och power clears",10,"Steget till Diamond handlar mest om att inte släppa in lätta mål."],["Shadow defense mot All-Star-bot",10,"Sista man, 1–2 bilängder bakom bollbäraren. Matcha farten och utmana bara vid tydlig fördel."]]],
+ ["Avslutning",[RK(15,"Välj ett fokus, till exempel alltid sista man när du är djupast."),REP(5)]]]],
+["Diamond","Fokus: tempo, väggspel och luftläsning. Rotation och tålamod avgör.",[
+ ["Uppvärmning",[TCH(5),SF(4),RV(3)]],
+ ["Väggar och backboard",[["Backboard reads",10,"Läs studsarna tidigt och ta bollen på väg ner."],["Väggspel och väggpass",6,"Spela bollen runt motståndaren längs väggen."]]],
+ ["Luftspel",[["Snabba aerials och redirects",10,"Läs obekväma vinklar snabbt. Ren första touch."],["Första touch: mark, vägg, luft",6,"Ta emot bollen så att du hamnar i läge för nästa spel."]]],
+ ["Försvar och beslut",[["Shadow defense och sista man",12,"Pressa åt sidan, utmana inte i onödan och släpp 50/50 när lagkamraten är närmare."],["Corner saves",6,"Läs bollens bana i hörnet innan du går på."]]],
+ ["Avslutning",[RK(15),REP(10,"Räkna mål som kom av rotation, boost eller överengagemang.")]]]],
+["Champion","Fokus: jämn mekanik i luft och på mark, och tydliga beslut i 50/50.",[
+ ["Uppvärmning",[TCH(5),SF(4),RV(3)]],
+ ["Mekanik",[["Dubbeltryck (double tap)",10,"Backboard-dubbeltryck. Många försök per minut slår få perfekta."],["Air dribble setup",10,"Fokusera på första touchen som skapar läget, inte bara avslutet."],["Dribbling och flick",10,"Välj en flick och upprepa. Hoppa över replayen för fler försök."]]],
+ ["Beslut",[["50/50 och challenges",8,"Gå fullt eller backa. Ett halvt försök ger motståndaren bollen."],["Pass och redirects",8,"Hitta rätt vinkel och fart i passet."]]],
+ ["Avslutning",[RK(30,"Sätt ett fokus och en förlustgräns."),REP(5,"Titta på boost, tid i supersonic och hur ofta du är andra bil på bollen.")]]]],
+["Grand Champion","Fokus: fart, få misstag och snabba beslut.",[
+ ["Uppvärmning",[TCH(8),SF(4)]],
+ ["Luftkontroll",[["Aerial car control",15,"Styr bilen i luften med små rörelser och håll tempot uppe."],["Fria luftövningar",10,"Ringar och riktningsbyten i freeplay. Ringarna är bara en guide."]]],
+ ["Konsistens",[["Power shots med tidspress",10,"30 sekunder per skott håller tempot realistiskt."],["Redirects i hög fart",10,"Obekväma vinklar i hög hastighet."],["Pinches och avancerade flicks",8,"Fokusera på att få dem att sitta oftare."]]],
+ ["Beslut och analys",[RK(30,"En session med förlustgräns."),REP(10,"Nitpicka dina egna misstag. Be gärna någon som är bättre om en andra åsikt.")]]]],
+["Supersonic Legend","Fokus: underhåll av mekaniken, minimera misstag och granska beslut.",[
+ ["Uppvärmning",[["Mekanik-pack som uppvärmning",10,"Välj det du är minst säker på idag."],SF(4)]],
+ ["Mekanik",[["Aerial car control och freestyle",15,"Kontroll först, flow efter."],["Flip resets och dubbeltryck",10,"Räkna din träffprocent så att du ser om det blir jämnare."]]],
+ ["Konsistens",[["Power shots under tidspress",10,"Jämnhet över många försök."],RV(5)]],
+ ["Beslut och analys",[["Replay review: position och beslut",15,"Leta efter beslut du kunde tagit tidigare."],RK(30,"En session med förlustgräns.")]]]]
+];
+const GN=G.map(x=>x[0]);
+const SH=[
+ [[0,1,3],[1,0,8],[2,1,4],[3,0,3],[4,0,8]],
+ [[0,0,4],[1,0,6],[1,2,4],[2,0,5],[4,0,8]],
+ [[0,0,4],[1,0,5],[2,0,4],[3,0,7],[4,0,8]],
+ [[0,0,3],[0,1,3],[1,1,5],[2,0,5],[3,1,6],[4,0,6]],
+ [[0,1,3],[1,0,5],[2,0,5],[3,0,7],[4,0,8]],
+ [[0,1,3],[1,0,6],[1,1,6],[2,0,5],[3,1,5]],
+ [[0,1,3],[1,0,8],[2,0,6],[2,1,5],[3,1,6]],
+ [[0,0,6],[1,0,8],[2,0,6],[3,0,8]]
+];
+const mkI=([t,m,h],mm)=>({id:uid(),t,m:mm===undefined?m:mm,h:h||"",d:false});
+function defTrain(g,short){
+  if(!short)return {secs:G[g][2].map(([n,its])=>({id:uid(),n,items:its.map(x=>mkI(x))}))};
+  const secs=[];
+  SH[g].forEach(([si,ii,m])=>{const sec=G[g][2][si];let o=secs.find(x=>x.si===si);if(!o){o={id:uid(),n:sec[0],items:[],si};secs.push(o)}o.items.push(mkI(sec[1][ii],m))});
+  secs.forEach(o=>delete o.si);
+  return {secs};
+}
+function curG(){const v=S.train.view;return v&&v!=="auto"?+v:(S.rank.t>=21?7:Math.floor(S.rank.t/3))}
+const isShort=()=>S.train.mode==="short";
+function pk(){return curG()+(isShort()?"s":"")}
+function PL(){const T=S.train,k=pk();return T.plans[k]||(T.plans[k]=defTrain(curG(),isShort()))}
+const FOCI=["Alltid veta vem som är sista man","Aldrig gå på bollen med under 30 boost","Säg “I got it!” varje gång du går på en boll","Släpp 50/50 när lagkamraten är närmare","Plocka små pads på vägen tillbaka","Ta ett andetag efter varje insläppt mål"];
+const esc=x=>String(x).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let edit=false;
+const TR=()=>S.train;
+function renderT(){
+  const T=TR(),P=PL(),all=P.secs.flatMap(x=>x.items),tot=all.reduce((a,i)=>a+i.m,0),dn=all.filter(i=>i.d),dm=dn.reduce((a,i)=>a+i.m,0);
+  const p=all.length?Math.round(dn.length/all.length*100):0;
+  $("ring").style.setProperty("--p",p);$("ringTxt").textContent=p+"%";
+  $("tSum").textContent=dn.length+" av "+all.length+" övningar klara · "+(tot-dm)+" min kvar";
+  $("tMsg").textContent=p===0?"Redo när du är det. Börja med uppvärmningen.":p<50?"Bra start, fortsätt i samma tempo.":p<100?"Över halvvägs. Dra i mål!":"Passet är klart. Bra jobbat!";
+  $("tFocus").textContent=FOCI[T.focus%FOCI.length];
+  $("gSel").value=T.view||"auto";$("mSel").value=T.mode||"long";$("gTxt").textContent=(T.view&&T.view!=="auto"?"Visar pass för ":"Anpassat efter din rank: ")+GN[curG()]+". "+G[curG()][1]+(isShort()?" Detta är kortversionen.":"");
+  const wk=T.log.filter(d=>Date.now()-new Date(d).getTime()<7*864e5).length;
+  $("tLog").textContent="Pass senaste 7 dagarna: "+wk+" · Totalt: "+T.log.length+(T.log.length?" · Senast: "+T.log[T.log.length-1]:"");
+  $("finish").style.display=dn.length&&!edit?"":"none";
+  $("editBtn").textContent=edit?"Klar med redigering":"Redigera pass";
+  $("editTools").hidden=!edit;
+  $("secs").innerHTML=P.secs.map(sc=>{
+    const n=sc.items.length,d=sc.items.filter(i=>i.d).length,m=sc.items.reduce((a,i)=>a+i.m,0);
+    const head=edit?'<input class="in" data-f="sn" data-s="'+sc.id+'" value="'+esc(sc.n)+'" aria-label="Namn på del">':'<div class="sh"><h2>'+esc(sc.n)+'</h2><span class="mn">'+d+"/"+n+" · "+m+' min</span></div>';
+    const bar=edit?"":'<div class="sbar"><i style="width:'+(n?d/n*100:0)+'%"></i></div>';
+    const items=sc.items.map(i=>{
+      const a='data-s="'+sc.id+'" data-i="'+i.id+'"';
+      if(edit)return '<div class="er"><input class="in" '+a+' data-f="t" value="'+esc(i.t)+'" aria-label="Övning"><input class="in mi" type="number" min="0" max="120" '+a+' data-f="m" value="'+i.m+'" aria-label="Minuter"><button class="x" data-a="delI" '+a+' aria-label="Ta bort övning">✕</button></div><input class="in hint" '+a+' data-f="h" value="'+esc(i.h)+'" placeholder="Tips (valfritt)" aria-label="Tips">';
+      return '<label class="it'+(i.d?" on":"")+'"><input type="checkbox" '+a+' data-a="chk"'+(i.d?" checked":"")+'><span class="tx"><b>'+esc(i.t)+'</b>'+(i.h?"<em>"+esc(i.h)+"</em>":"")+'</span><span class="mn">'+i.m+' min</span>'+(i.m>0?'<button class="tm" data-a="tim" '+a+' aria-label="'+(act(i)?(TM.paused?"Fortsätt timer":"Pausa timer"):"Starta timer")+'">'+(act(i)&&!TM.paused?"❚❚":"▶")+'</button>':"")+'</label>' ;
+    }).join("");
+    const tools=edit?'<div class="row" style="margin-top:10px"><button data-a="addI" data-s="'+sc.id+'">+ Lägg till övning</button><button data-a="delS" data-s="'+sc.id+'">Ta bort del</button></div>':"";
+    return '<section class="card sec'+(n&&d===n&&!edit?" full":"")+'">'+head+bar+items+tools+"</section>";
+  }).join("");
+}
+function secOf(el){return PL().secs.find(x=>x.id===el.dataset.s)}
+$("secs").addEventListener("change",e=>{
+  const t=e.target,sc=secOf(t);if(!sc)return;
+  const it=sc.items.find(x=>x.id===t.dataset.i);
+  if(t.dataset.a==="chk"&&it)it.d=t.checked;
+  else if(t.dataset.f==="sn")sc.n=t.value;
+  else if(it&&t.dataset.f==="t")it.t=t.value;
+  else if(it&&t.dataset.f==="m")it.m=Math.max(0,Math.min(120,Math.round(+t.value)||0));
+  else if(it&&t.dataset.f==="h")it.h=t.value;
+  else return;
+  save();renderT();
+});
+$("secs").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-a]");if(!b)return;
+  const sc=secOf(b),T=TR();if(!sc)return;
+  if(b.dataset.a==="addI")sc.items.push({id:uid(),t:"Ny övning",m:5,h:"",d:false});
+  else if(b.dataset.a==="delI")sc.items=sc.items.filter(x=>x.id!==b.dataset.i);
+  else if(b.dataset.a==="delS"){const P=PL();P.secs=P.secs.filter(x=>x.id!==sc.id)}
+  else if(b.dataset.a==="tim"){const it=sc.items.find(x=>x.id===b.dataset.i);if(it){if(act(it))pauseT();else startT(sc,it)}return}
+  else return;
+  save();renderT();
+});
+$("editBtn").onclick=()=>{edit=!edit;renderT()};
+$("addSec").onclick=()=>{PL().secs.push({id:uid(),n:"Ny del",items:[]});save();renderT()};
+$("nf").onclick=()=>{TR().focus++;save();renderT()};
+twoStep($("defBtn"),"Återställ standardpass","Tryck igen för att återställa",()=>{S.train.plans[pk()]=defTrain(curG(),isShort());save();renderT()});
+twoStep($("finish"),"Slutför pass","Tryck igen för att logga passet",()=>{const T=TR();T.log.push(new Date().toLocaleDateString("sv-SE"));PL().secs.forEach(x=>x.items.forEach(i=>i.d=false));T.focus++;save();renderT()});
+let TM=null,AC=null,WL=null;const T0=document.title;
+function unlock(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();AC.resume()}catch(e){}}
+function beepSound(){try{unlock();[0,.35,.7].forEach(t=>{const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=880;g.gain.value=.15;o.connect(g);g.connect(AC.destination);o.start(AC.currentTime+t);o.stop(AC.currentTime+t+.2)})}catch(e){}}
+function beep(){if(cfg("snd"))beepSound();if(cfg("vib")&&navigator.vibrate)navigator.vibrate([200,100,200])}
+async function wl(on){try{if(on&&navigator.wakeLock)WL=await navigator.wakeLock.request("screen");else if(WL){await WL.release();WL=null}}catch(e){}}
+const clk=ms=>{const q=Math.max(0,Math.ceil(ms/1000));return String(Math.floor(q/60)).padStart(2,"0")+":"+String(q%60).padStart(2,"0")};
+function drawT(){
+  if(!TM){$("timer").hidden=true;document.body.classList.remove("timing");document.title=T0;return}
+  const left=TM.done?0:TM.paused?TM.left:TM.end-Date.now();
+  $("timer").hidden=false;document.body.classList.add("timing");
+  $("tName").textContent=(TM.done?"Klart: ":"")+TM.name;
+  $("tClock").textContent=clk(left);
+  $("tBar").style.width=Math.min(100,Math.max(0,(1-left/TM.total)*100))+"%";
+  $("tPause").style.display=$("tPlus").style.display=TM.done?"none":"";
+  $("tPause").textContent=TM.paused?"Fortsätt":"Pausa";
+  $("tStop").textContent=TM.done?"Stäng":"Stoppa";
+  document.title=TM.done?T0:clk(left)+" – "+TM.name;
+}
+function doneT(){
+  TM.done=true;beep();wl(false);
+  const sc=PL().secs.find(x=>x.id===TM.sid),it=sc&&sc.items.find(x=>x.id===TM.iid);
+  if(it){it.d=true;save();renderT()}
+  drawT();
+}
+setInterval(()=>{if(TM&&!TM.done&&!TM.paused){if(TM.end-Date.now()<=0)doneT();else drawT()}},250);
+function startT(sc,it){unlock();if(cfg("wake"))wl(true);TM={name:it.t,sid:sc.id,iid:it.id,total:it.m*60000,end:Date.now()+it.m*60000,paused:false,left:0,done:false};drawT();renderT()}
+function pauseT(){if(!TM)return;if(TM.paused){TM.end=Date.now()+TM.left;TM.paused=false}else{TM.left=TM.end-Date.now();TM.paused=true}drawT();renderT()}
+$("tPause").onclick=pauseT;
+const act=i=>TM&&!TM.done&&TM.iid===i.id;
+$("tPlus").onclick=()=>{if(!TM)return;TM.total+=60000;if(TM.paused)TM.left+=60000;else TM.end+=60000;drawT()};
+$("tStop").onclick=()=>{TM=null;wl(false);drawT();renderT()};
+const DN=["Mån","Tis","Ons","Tors","Fre","Lör","Sön"];
+function iso(d){return d.toLocaleDateString("sv-SE")}
+function today(){return iso(new Date())}
+function addD(x,n){const d=new Date(x+"T12:00:00");d.setDate(d.getDate()+n);return iso(d)}
+function mon(x){return addD(x,-((new Date(x+"T12:00:00").getDay()+6)%7))}
+function isoWeek(x){const t=new Date(x+"T12:00:00"),d=new Date(Date.UTC(t.getFullYear(),t.getMonth(),t.getDate())),n=d.getUTCDay()||7;d.setUTCDate(d.getUTCDate()+4-n);return Math.ceil(((d-new Date(Date.UTC(d.getUTCFullYear(),0,1)))/864e5+1)/7)}
+function fmt(x){return new Date(x+"T12:00:00").toLocaleDateString("sv-SE",{day:"numeric",month:"short"})}
+const sg=n=>(n>0?"+":"")+n;
+function weekData(m){const e=addD(m,6),g=S.games.filter(x=>x.d>=m&&x.d<=e),w=g.filter(x=>x.r==="W").length;return {m,e,g,w,l:g.length-w,sess:S.train.log.filter(d=>d>=m&&d<=e).length}}
+function rankAt(d){let r=S.rankLog[0];for(const x of S.rankLog){if(x.d<=d)r=x}return {t:r.t,d:r.v}}
+function rankChange(m){const e=addD(m,6),t=today();return rankIdx(rankAt(e>t?t:e))-rankIdx(rankAt(addD(m,-1)))}
+function pushRank(){const t=today(),e={d:t,t:S.rank.t,v:S.rank.d},L=S.rankLog;if(L.length&&L[L.length-1].d===t)L[L.length-1]=e;else L.push(e)}
+function weeks(){const ds=[...S.games.map(x=>x.d),...S.train.log,today()].sort(),out=[];for(let m=mon(ds[0]);m<=mon(today());m=addD(m,7))out.push(weekData(m));return out}
+function maxStreak(g){let b=0,c=0;g.forEach(x=>{c=x.r==="W"?c+1:0;if(c>b)b=c});return b}
+let cmpOpen=false;
+function cmpHTML(cur,others){
+  const lg=S.legacy;
+  if(!others.length&&!lg.length)return '<section class="card"><p class="empty">Det finns inga tidigare veckor att jämföra med ännu. Kom tillbaka efter nästa måndag.</p></section>';
+  const ow=others.reduce((a,x)=>a+x.w,0)+lg.reduce((a,x)=>a+x.w,0),ol=others.reduce((a,x)=>a+x.l,0)+lg.reduce((a,x)=>a+x.l,0),pool=pc(ow,ol),p=pc(cur.w,cur.l);
+  const avg=f=>others.length?Math.round(others.reduce((a,x)=>a+f(x),0)/others.length*10)/10:"–";
+  const mx=f=>others.length?Math.max(...others.map(f)):"–";
+  const cand=[...others.filter(x=>x.g.length),...lg],big=cand.filter(x=>x.w+x.l>=3),pick=big.length?big:cand;
+  const bestP=pick.length?Math.max(...pick.map(x=>pc(x.w,x.l))):null,rcs=others.map(x=>rankChange(x.m));
+  const rows=[["Matcher",cur.g.length,avg(x=>x.g.length),mx(x=>x.g.length)],["Vinstprocent",p===null?"–":p+" %",pool===null?"–":pool+" %",bestP===null?"–":bestP+" %"],["Träningspass",cur.sess,avg(x=>x.sess),mx(x=>x.sess)],["Rank (div)",sg(rankChange(cur.m)),rcs.length?sg(Math.round(rcs.reduce((a,b)=>a+b,0)/rcs.length*10)/10):"–",rcs.length?sg(Math.max(...rcs)):"–"]];
+  const ch=[...lg.map(x=>({lb:x.label,pct:pc(x.w,x.l),s:0})),...others.map(x=>({lb:"v"+isoWeek(x.m),pct:pc(x.w,x.l),s:x.sess})),{lb:"v"+isoWeek(cur.m),pct:p,s:cur.sess,cur:1}].slice(-12);
+  const bars=ch.map(c=>'<div class="col'+(c.cur?" cur":"")+'"><span>'+(c.pct===null?"–":c.pct)+'</span><i style="height:'+(c.pct||0)*0.9+'px;background:'+(c.pct>=50?"var(--blue)":"var(--orange)")+'"></i><span>'+c.lb+'</span><span style="color:var(--blue);font-size:10px;min-height:12px">'+"●".repeat(Math.min(c.s,7))+'</span></div>').join("");
+  return '<section class="card"><h2>Denna vecka mot tidigare</h2><div style="overflow-x:auto"><table class="cmpt"><tr><th></th><th>Denna vecka</th><th>Snitt</th><th>Bästa</th></tr>'+rows.map(r=>'<tr><td>'+r[0]+'</td><td><b>'+r[1]+'</b></td><td>'+r[2]+'</td><td>'+r[3]+'</td></tr>').join("")+'</table></div></section><section class="card"><h2>Vinstprocent per vecka</h2><div class="chart">'+bars+'</div><p class="empty" style="font-size:13px;margin-top:8px">Staplarna visar vinstprocent, prickarna antal träningspass. Svart ram är den här veckan.</p></section>';
+}
+function renderS(){
+  const t=today(),m=mon(t),all=weeks(),cur=all[all.length-1],prev=all[all.length-2],others=all.slice(0,-1),goal=S.goal;
+  const p=pc(cur.w,cur.l),rc=rankChange(m),tp=Math.min(100,Math.round(cur.sess/goal*100));
+  $("sWeek").textContent="Vecka "+isoWeek(t)+", "+fmt(cur.m)+" till "+fmt(cur.e)+" · nollställs automatiskt varje måndag";
+  const days=DN.map((n,i)=>{const d=addD(m,i),gs=cur.g.filter(x=>x.d===d),w=gs.filter(x=>x.r==="W").length,l=gs.length-w,sx=S.train.log.filter(x=>x===d).length;
+    return '<div class="day'+(d===t?" today":"")+(d>t?" fut":"")+'"><span>'+n+'</span><b>'+(gs.length?w+"–"+l:"·")+'</b><div class="mini"><i style="width:'+(gs.length?w/gs.length*100:0)+'%;background:var(--blue)"></i><i style="width:'+(gs.length?l/gs.length*100:0)+'%;background:var(--orange)"></i></div><div class="dots">'+"●".repeat(Math.min(sx,5))+'</div></div>'}).join("");
+  const lastT=S.train.log.length?S.train.log[S.train.log.length-1]:null,ago=lastT?Math.round((new Date(t+"T12:00:00")-new Date(lastT+"T12:00:00"))/864e5):null;
+  const vs=prev&&prev.g.length&&cur.g.length?p-pc(prev.w,prev.l):null;
+  const idx=rankIdx(S.rank),left=(S.rank.t+1)*4-idx,nxt=S.rank.t<21?TIERS[S.rank.t+1]:null;
+  const bs=[["🎯","Veckomål",cur.sess>=goal],["🛡","Obesegrad",cur.g.length>=3&&cur.l===0],["🔥","5 vinster i rad",maxStreak(cur.g)>=5],["⚡","15 matcher",cur.g.length>=15],["📈","Rank upp",rc>0]];
+  const ins=[],gw=others.filter(x=>x.g.length>=3),hi=gw.filter(x=>x.sess>=goal),lo=gw.filter(x=>x.sess<goal),f=a=>pc(a.reduce((s,x)=>s+x.w,0),a.reduce((s,x)=>s+x.l,0));
+  if(hi.length&&lo.length){const d=f(hi)-f(lo);ins.push("Veckor där du nått träningsmålet: "+f(hi)+" % vinster, mot "+f(lo)+" % övriga veckor ("+sg(d)+" procentenheter)."+(gw.length<6?" Det är få veckor än, så ta det försiktigt.":""))}
+  const bd=DN.map((n,i)=>{const gs=S.games.filter(x=>(new Date(x.d+"T12:00:00").getDay()+6)%7===i);return {n,g:gs.length,p:pc(gs.filter(x=>x.r==="W").length,gs.filter(x=>x.r==="L").length)}}).filter(x=>x.g>=5).sort((a,b)=>b.p-a.p);
+  if(bd.length>=2)ins.push("Din bästa dag är "+bd[0].n+" ("+bd[0].p+" % vinster) och sämsta "+bd[bd.length-1].n+" ("+bd[bd.length-1].p+" %).");
+  let k=0;for(let i=all.length-1;i>=0;i--){if(all[i].sess>=goal)k++;else if(i===all.length-1)continue;else break}
+  if(k>=2)ins.push(k+" veckor i rad med nått träningsmål.");
+  const rd=idx-rankIdx(rankAt(S.rankLog[0].d));if(rd!==0)ins.push("Sedan första rank-loggen har du gått "+(rd>0?"upp ":"ner ")+Math.abs(rd)+(Math.abs(rd)===1?" division.":" divisioner."));
+  if(!ins.length)ins.push("Spela och träna några veckor så dyker mönster upp här.");
+  $("sBody").innerHTML='<div class="card"><div class="days">'+days+'</div><p class="empty" style="font-size:13px;margin:10px 0 0">Blått är vinster, orange förluster och prickarna är träningspass.</p></div>'
+  +'<section class="card"><h2>Träning</h2><div class="ringrow"><div class="ring" style="--p:'+tp+'"><span>'+cur.sess+"/"+goal+'</span></div><div><b>'+(cur.sess>=goal?"Veckomålet är nått!":(goal-cur.sess)+" pass kvar till veckomålet")+'</b><p class="empty" style="margin-top:4px;font-size:14px">'+(ago===null?"Inget pass loggat ännu.":ago===0?"Senaste passet: i dag.":"Senaste passet: för "+ago+(ago===1?" dag":" dagar")+" sedan.")+'</p><div class="stp"><span>Veckomål</span><button data-a="g-" aria-label="Minska veckomål">−</button><b>'+goal+'</b><button data-a="g+" aria-label="Öka veckomål">+</button></div></div></div><p class="empty" style="margin:12px 0 0;font-size:14px">3–4 pass i veckan räcker för de flesta. Både korta och långa pass räknas, och ett fokuserat pass slår ett långt utan fokus.</p></section>'
+  +'<section class="card"><h2>Matcher</h2><div class="stats"><div><b>'+cur.w+'</b><span>Vinster</span></div><div><b>'+cur.l+'</b><span>Förluster</span></div><div><b>'+(p===null?"–":p+"%")+'</b><span>Vinstprocent</span></div></div><p class="empty" style="margin:12px 0 0;font-size:14px">'+(vs===null?"Ingen jämförelse mot förra veckan ännu.":"Mot förra veckan: "+sg(vs)+" procentenheter.")+" "+(streakText()?streakText()+". ":"")+(maxStreak(cur.g)?"Längsta vinstsvit i veckan: "+maxStreak(cur.g)+".":"")+'</p></section>'
+  +'<section class="card"><h2>Rank</h2><b style="font-size:20px">'+rankName(S.rank)+'</b><p class="empty" style="margin:4px 0 0;font-size:14px">'+(rc===0?"Oförändrad den här veckan.":sg(rc)+(Math.abs(rc)===1?" division":" divisioner")+" den här veckan.")+(nxt?" "+left+(left===1?" division":" divisioner")+" till "+nxt+".":"")+'</p>'+(nxt?'<div class="sbar"><i style="width:'+(4-left)/4*100+'%"></i></div>':"")+'</section>'
+  +'<section class="card"><h2>Veckans märken</h2><div class="badges">'+bs.map(b=>'<div class="bd'+(b[2]?" on":"")+'"><i>'+b[0]+'</i>'+b[1]+'</div>').join("")+'</div></section>'
+  +'<section class="card"><h2>Mönster</h2><ul class="ins">'+ins.map(x=>"<li>"+x+"</li>").join("")+'</ul></section>'
+  +'<button data-a="cmp" style="width:100%;margin-bottom:16px;border-color:var(--blue);color:var(--blue);font-weight:700">'+(cmpOpen?"Dölj jämförelsen":"Jämför med tidigare veckor")+'</button>'+(cmpOpen?cmpHTML(cur,others):"");
+}
+$("sBody").addEventListener("click",e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;if(a==="g+")S.goal=Math.min(7,S.goal+1);else if(a==="g-")S.goal=Math.max(1,S.goal-1);else if(a==="cmp")cmpOpen=!cmpOpen;else return;save();renderS()});
+function bkMsg(t){$("bkMsg").textContent=t}
+function exportText(){return JSON.stringify({app:"rankup",v:1,exported:new Date().toISOString(),data:S},null,1)}
+$("bkExp").onclick=()=>{
+  try{const b=new Blob([exportText()],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="rankup-backup-"+today()+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);bkMsg("Filen sparas i dina nedladdningar. Fungerar det inte, använd Kopiera som text.")}
+  catch(e){bkMsg("Kunde inte skapa filen. Använd Kopiera som text i stället.")}
+};
+$("bkCopy").onclick=async()=>{
+  const t=exportText();$("bkTxt").value=t;
+  try{await navigator.clipboard.writeText(t);bkMsg("Kopierat. Klistra in texten på den nya telefonen och tryck Importera.")}
+  catch(e){$("bkTxt").select();bkMsg("Markera texten ovan och kopiera den själv.")}
+};
+$("bkFile").onclick=()=>$("bkIn").click();
+$("bkIn").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{$("bkTxt").value=String(r.result);bkMsg("Filen är inläst. Tryck på Importera för att ersätta nuvarande data.")};r.readAsText(f);e.target.value=""};
+twoStep($("bkImp"),"Importera","Tryck igen för att ersätta nuvarande data",()=>{
+  let o;try{o=JSON.parse($("bkTxt").value)}catch(e){bkMsg("Texten är ingen giltig säkerhetskopia.");return}
+  const d=o&&o.data?o.data:o;
+  if(!d||typeof d!=="object"||!(Array.isArray(d.games)||Array.isArray(d.cur))){bkMsg("Det här ser inte ut som en kopia från RankUp.");return}
+  try{localStorage.setItem(KEY,JSON.stringify(d));location.reload()}catch(e){bkMsg("Kunde inte spara datan i webbläsaren.")}
+});
+const CFG_DEF={theme:"auto",accent:"blue",fs:1,font:"sport",snd:true,vib:true,wake:true,chips:14,streak:true};
+function cfg(k){return S.cfg&&S.cfg[k]!==undefined?S.cfg[k]:CFG_DEF[k]}
+const ACC={blue:["Blå","#1f5fe0","#4b86ff","#dbe7ff","#1b2c52"],green:["Grön","#12925a","#22b36b","#d6f3e3","#12382a"],purple:["Lila","#7a3fe0","#9560f5","#e8dcff","#2c1d52"],teal:["Turkos","#0b8a97","#18a9b8","#d3f1f4","#0f363a"],pink:["Rosa","#d6247f","#ec4a98","#ffdcec","#4a1530"]};
+function applyCfg(){
+  const r=document.documentElement,th=cfg("theme");
+  if(th==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",th);
+  const dark=th==="dark"||(th==="auto"&&typeof matchMedia==="function"&&matchMedia("(prefers-color-scheme: dark)").matches);
+  const a=ACC[cfg("accent")]||ACC.blue;
+  if(cfg("accent")==="blue"){r.style.removeProperty("--blue");r.style.removeProperty("--blue-soft")}
+  else{r.style.setProperty("--blue",dark?a[2]:a[1]);r.style.setProperty("--blue-soft",dark?a[4]:a[3])}
+  document.body.style.zoom=cfg("fs")===1?"":cfg("fs");
+  let st=document.getElementById("fontOv");
+  if(!st){st=document.createElement("style");st.id="fontOv";document.head.appendChild(st)}
+  st.textContent=cfg("font")==="simple"?'h1,.pct,.rec,.big,.tabs button,.clock,.stats b,.day b,.ring span,.col{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif!important}':"";
+  const mt=document.querySelector('meta[name="theme-color"]');
+  if(mt)mt.setAttribute("content",dark?"#0b1220":(cfg("accent")==="blue"?"#1f5fe0":a[1]));
+}
+try{if(typeof matchMedia==="function")matchMedia("(prefers-color-scheme: dark)").addEventListener("change",applyCfg)}catch(e){}
+let setPage="tema";
+const PAGES=[["tema","Tema"],["trn","Träning"],["mat","Matcher"],["bk","Säkerhetskopia"],["om","Om"]];
+function optRow(k,vals,cur){return '<div class="opt">'+vals.map(([v,l])=>'<button data-k="'+k+'" data-v="'+v+'" aria-pressed="'+(String(cur)===String(v))+'">'+l+'</button>').join("")+'</div>'}
+function tog(k,l,d){return '<label class="tg"><span><b>'+l+'</b>'+(d?'<br><span class="empty" style="font-size:13px">'+d+'</span>':"")+'</span><input type="checkbox" data-t="'+k+'"'+(cfg(k)?" checked":"")+'></label>'}
+function renderSet(){
+  $("setNav").innerHTML=PAGES.map(([id,l])=>'<button data-p="'+id+'" aria-pressed="'+(setPage===id)+'">'+l+'</button>').join("");
+  $("pgBackup").hidden=setPage!=="bk";$("setDyn").hidden=setPage==="bk";
+  let h="";
+  if(setPage==="tema"){
+    h='<section class="card"><h2>Utseende</h2><h3>Läge</h3>'+optRow("theme",[["auto","Auto (följer telefonen)"],["light","Ljust"],["dark","Mörkt"]],cfg("theme"))
+    +'<h3>Färg</h3><div class="opt">'+Object.keys(ACC).map(k=>'<button class="sw" data-k="accent" data-v="'+k+'" aria-label="'+ACC[k][0]+'" aria-pressed="'+(cfg("accent")===k)+'" style="background:'+ACC[k][1]+'"></button>').join("")+'</div>'
+    +'<h3>Textstorlek</h3>'+optRow("fs",[[0.92,"Liten"],[1,"Normal"],[1.12,"Stor"]],cfg("fs"))
+    +'<h3>Typsnitt för rubriker</h3>'+optRow("font",[["sport","Sportig"],["simple","Enkel"]],cfg("font"))+'</section>';
+  }else if(setPage==="trn"){
+    h='<section class="card"><h2>Träning</h2><h3>Veckomål (pass per vecka)</h3>'+optRow("goal",[1,2,3,4,5,6,7].map(x=>[x,x]),S.goal)
+    +'<h3>Standardlängd på pass</h3>'+optRow("tmode",[["long","Fullt pass"],["short","Kort pass"]],S.train.mode||"long")
+    +'<h3>Pass för</h3><div class="opt"><select class="in" data-sel="tview" aria-label="Pass för rank"><option value="auto">Min rank (automatiskt)</option>'+GN.map((n,i)=>'<option value="'+i+'"'+(String(S.train.view)===String(i)?" selected":"")+'>'+n+'</option>').join("")+'</select></div></section>'
+    +'<section class="card"><h2>Timer</h2>'+tog("snd","Ljud när tiden är slut")+tog("vib","Vibration","Fungerar inte på alla telefoner.")+tog("wake","Håll skärmen tänd medan timern går")+'</section>';
+  }else if(setPage==="mat"){
+    h='<section class="card"><h2>Matcher</h2><h3>Antal senaste matcher som visas</h3>'+optRow("chips",[[7,"7"],[14,"14"],[30,"30"]],cfg("chips"))+tog("streak","Visa vinst- och förlustsvit")
+    +'<p class="empty" style="font-size:14px;margin:12px 0 0">Veckan startar alltid på måndag och avslutas på söndag.</p></section>';
+  }else if(setPage==="om"){
+    const ds=[...S.games.map(x=>x.d),...S.train.log].sort();
+    h='<section class="card"><h2>Om RankUp</h2><p style="margin:0 0 8px">Version 1.0</p><p class="empty" style="margin:0 0 8px">'+(ds.length?"Du har loggat "+S.games.length+" matcher och "+S.train.log.length+" träningspass. Första loggen gjordes "+fmt(ds[0]):"Inget loggat ännu.")+'</p><p class="empty" style="margin:0">All data sparas bara i den här webbläsaren. Gör en säkerhetskopia ofta, särskilt innan du byter telefon.</p></section>';
+  }
+  $("setDyn").innerHTML=h;
+}
+$("vSet").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-p],button[data-k]");if(!b)return;
+  if(b.dataset.p){setPage=b.dataset.p;renderSet();return}
+  const k=b.dataset.k,v=b.dataset.v;
+  if(k==="goal")S.goal=+v;else if(k==="tmode")S.train.mode=v;else if(k==="chips"||k==="fs")S.cfg[k]=+v;else S.cfg[k]=v;
+  save();applyCfg();renderSet();render();
+});
+$("vSet").addEventListener("change",e=>{
+  const t=e.target;
+  if(t.dataset.t){S.cfg[t.dataset.t]=t.checked;save();render()}
+  else if(t.dataset.sel==="tview"){S.train.view=t.value;save()}
+});
+const QZ=[
+[["Vilken resurs behöver du för att kunna flyga och komma snabbt tillbaka i spel?",["Boost","Bilens färg","Antal hopp","Kameraavstånd"],"Boost ger fart och används till aerials, så håll alltid koll på den."],
+["Hur mycket boost ger en stor boostpad?",["100 (full tank)","12","50","25"],"Stora pads fyller hela tanken. Små pads ger bara 12."],
+["Vad är en kickoff?",["Starten av matchen och efter varje mål, då båda kör mot bollen","En sorts boost","Ett skott från hörnet","När matchen går till förlängning"],"Det är där varje ny omgång börjar."],
+["Du är sista man bakåt och bollen kommer mot ditt mål. Vad gör du?",["Ställer dig mellan bollen och målet","Åker mot motståndarens mål","Står still bredvid målet","Hoppar upp direkt"],"Sista man täcker målet och försöker rensa bollen."],
+["Vad gör ball cam?",["Håller kameran riktad mot bollen","Gör bollen större","Ger mer boost","Stänger av kamerarörelser"],"Med ball cam ser du alltid var bollen är."],
+["Vad används powerslide till?",["Skarpa svängar utan att tappa mycket fart","Att fylla boost","Att hoppa högre","Att göra bilen snabbare i luften"],"Powerslide (handbromsen) hjälper dig vända snabbt."]],
+[["Hur lång tid har du på dig efter första hoppet att använda andra hoppet eller en flip?",["Ungefär 1,5 sekunder","Ungefär 0,2 sekunder","Ungefär 10 sekunder","Obegränsat"],"Fönstret är cirka 1,5 sekunder, sedan förlorar du flippen tills du landar."],
+["Vad är en 50/50?",["När du och motståndaren når bollen samtidigt","Ett skott med halv kraft","När matchen är oavgjord","En typ av kickoff"],"Den som vinner den får oftast bollen, så välj noga när du går in."],
+["Vad menas med rotation i 2v2?",["Att lagkamraterna turas om att vara offensiv och att täcka bakåt","Att bilen snurrar i luften","Att man byter bil","Att kameran vrids"],"God rotation betyder att en alltid täcker försvaret."],
+["Varför är det bra att landa på hjulen efter en aerial?",["Du behåller fart och kontroll och är snabbare tillbaka","Du får mer boost","Du får extra poäng","Bilen blir snabbare permanent"],"Landar du på taket tappar du tempo."],
+["Vad är ball chasing?",["Att jaga bollen utan att tänka på position eller lagkamrat","Att följa bollen med kameran","Att ta alla boostpads","Att spela i ett hörn"],"Det ger ofta öppna mål när du missar."],
+["Vad är en clear?",["Att slå bollen bort från ditt eget mål","Att ta all boost","Att göra mål från egna planhalvan","Att hoppa över bollen"],"Helst slår du den mot sidan eller bort från mitten."]],
+[["Vad är shadow defense?",["Att följa motståndaren med avstånd och täcka målet i stället för att rusa in","Att stå i målet hela matchen","Att gömma sig bakom en vägg","Att alltid demolisha"],"Du tvingar fram misstag utan att ge bort bollen."],
+["Vad används en half-flip främst till?",["Att snabbt vända bilen och komma tillbaka framåt","Att göra mål från luften","Att fylla boost","Att ta kickoff"],"Perfekt för att snabbt ta sig tillbaka i försvar."],
+["Vad är syftet med en speedflip på kickoff?",["Att nå bollen snabbare","Att slippa använda boost","Att demolisha motståndaren","Att göra bilen större"],"En diagonal flip som du avbryter ger högre fart."],
+["Varför slår man ofta en clear mot sidan?",["Bollen hamnar ur farozonen mitt framför målet","Det ger mer boost","Det är regelstridigt att slå rakt","Bollen studsar då aldrig"],"Mitten är farligast, sidorna ger dig tid."],
+["Vad händer när du demolisherar en motståndare?",["Hens bil förstörs och återuppstår efter en kort stund","Du får ett mål","Matchen pausas","Du förlorar boost"],"Det kräver att du kör med supersonic-fart in i bilen."],
+["Vad är boost starvation?",["Att ta motståndarens boost så att de får brist","Att själv slösa boost","Att aldrig använda boost","En bugg i spelet"],"Utan boost kan de inte flyga eller pressa."]],
+[["Din lagkamrat är första man på bollen. Vad är du då?",["Andra man som täcker och är redo för returen","Första man också","Kvar i hörnet","Målvakt som står still"],"Att inte vara på samma boll är grunden i 2v2."],
+["Vad är en backboard read?",["Att läsa var bollen studsar efter att den träffat bakre väggen","Att läsa en bok","Att titta på replay","Att hoppa upp på väggen"],"Bra läsning ger rätt position för retur eller försvar."],
+["Vad gör en wavedash?",["Ger lite extra fart när du landar","Bromsar bilen","Fyller boost","Rullar bilen runt"],"Du flippar precis innan landningen."],
+["Vad gör air roll?",["Roterar bilen runt längsaxeln så att du styr vinkeln i luften","Gör bilen snabbare","Ger extra hopp","Stänger av gravitationen"],"Det hjälper dig få rätt vinkel på träffen."],
+["Vad är syftet med en fast aerial?",["Att nå bollen i luften snabbare","Att få mer boost","Att slippa hoppa","Att spela långsammare"],"Du kombinerar hopp, boost och ett andra hopp för mer fart."],
+["Vad är en redirect?",["Att ändra riktning på en rörlig boll med en touch","Att byta lagkamrat","Att byta kamera","En typ av demo"],"Ofta används den för att styra bollen mot mål."]],
+[["Du är sista man och motståndaren kommer med bollen. Vad är oftast bäst?",["Backa och skugga tills du får en chans","Rusa in direkt","Stå helt still","Åka mot deras mål"],"Rusar du in ger du en lätt passning förbi dig."],
+["Vad bör du göra när din lagkamrat tar en offensiv touch?",["Ligga back och täcka så att ni inte är på samma sida","Också gå på bollen","Lämna planen","Stå still framför målet"],"Då är ni redo om bollen kommer tillbaka."],
+["Vad är en pinch?",["Bollen klämms mellan bilen och väggen eller golvet och skjuts iväg snabbt","En sorts boost","Ett missat skott","En demo"],"Den ger mycket fart och är svår att läsa."],
+["Vad är boost management?",["Att veta var boosten finns och ta små pads på vägen","Att aldrig använda boost","Att alltid ta stora pads","Att byta bil"],"Jämn boost gör att du kan pressa och försvara."],
+["Varför är ett halvhjärtat försök i en 50/50 ofta sämst?",["Du ger bort bollen utan att få något tillbaka","Det ger mer boost","Det är bara tillåtet en gång","Det ger poäng"],"Gå fullt eller backa."],
+["Vad kallas det att spela bollen längs väggen med bilen på väggen?",["Väggspel","Taksimning","Mållinjesspel","Kickoff"],"Bra väggspel ger fina passningar."]],
+[["Vad är ett double tap?",["Att slå bollen mot backboarden i luften och slå den igen efter studsen","Att trycka två gånger på boost","Att göra två mål i rad","Att dubbelhoppa"],"Svårt, men effektivt när det sitter."],
+["Vad är en flip reset?",["När hjulen nuddar bollen i luften så att du får tillbaka din flip","När matchen startar om","När du tappar boost","När bilen landar på taket"],"Då kan du flippa igen i luften."],
+["Vad är en air dribble?",["Att flyga med bollen i luften med små touches","Att dribbla på marken","Att skjuta lågt","Att passa med taket"],"Du tar bollen med dig i luften mot målet."],
+["Vad är en fake?",["Att låtsas gå på bollen och backa så att motståndaren committar","Ett missat skott","En demo","En typ av kickoff"],"Då kan du ta bollen när de gått ur position."],
+["Vad bör du fokusera mest på när du granskar en replay?",["Position och beslut före målet","Hur snygg mekaniken var","Bara målen du gjorde","Kamerainställningar"],"De flesta mål beror på beslut, inte på mekanik."],
+["Vad är en ceiling shot?",["Att använda taket för att nå och skjuta bollen","Ett skott som träffar taket","En demo","En kickoff"],"Du kör upp på taket och hoppar mot bollen."]],
+[["Vad kallas hastigheten där bilen lämnar efterbilder och kan demolisha?",["Supersonic","Turbo","Boost-max","Overdrive"],"Det är över ungefär 2200 enheter per sekund."],
+["Vad är syftet med aerial car control?",["Att styra bilens vinkel i luften för en ren touch","Att få mer boost","Att slippa landa","Att spela på taket"],"Det gör dina aerials jämnare."],
+["Vad är en bump?",["Att knuffa motståndarens bil utan att demolisha för att ändra deras bana","Ett missat skott","En kickoff","Ett hopp"],"Du stör deras spel utan att behöva ta bollen."],
+["Vad är en delay flick?",["Att hålla bollen i dribblingen och vänta innan flicken så att motståndaren gissar fel","En sen kickoff","Ett långsamt skott","En demo"],"Väntan lockar motståndaren att committa."],
+["Var står du ofta som back post i försvar?",["Vid den bortre stolpen mot bollen","Vid mittlinjen","Mitt framför målet","Vid motståndarens mål"],"Då täcker du den vinkel som skottet kommer mot."],
+["Varför är jämnhet ofta viktigare än snygg mekanik på hög nivå?",["Varje misstag kostar mål, och jämna motståndare straffar det","Snygga mål ger mer poäng","Mekanik spelar ingen roll","Det går inte att träna"],"Du vinner oftast på att göra färre misstag."]],
+[["Vad är en flip cancel?",["Att avbryta flippens rotation så bilen inte snurrar","Att stoppa matchen","Att byta bil","Att landa på taket"],"Används bland annat i half-flip och speedflip."],
+["Vad är en stall?",["Att kortvarigt hålla bilen kvar i luften med dodge och air roll för att ändra timing","Att stå still på marken","Att bromsa med handbroms","Ett missat skott"],"Du ändrar rytmen i luften för att lura motståndaren."],
+["Vad menas med game sense?",["Förmågan att förutse spelet och stå på rätt plats","Att ha snabb mus","Att ha bra internet","Att ha många bilar"],"Bra spelförståelse sparar mer boost och tid än mekanik."],
+["Vad innebär det att cheata en kickoff i 2v2?",["Att inte ta hela kickoffen utan ligga lite bakom för att täcka om den förloras","Att fuska","Att demolisha direkt","Att hoppa över kickoffen"],"Det ger säkerhet utan att ge upp pressen."],
+["Vad menas med tempo?",["Hur snabbt ni spelar och rör er mellan situationer","Bilens färg","Antal mål","Matchens längd"],"Högt tempo pressar motståndaren till misstag."],
+["Varför värmer många toppspelare upp med mekanikpack?",["För att hålla mekaniken skarp och jämn","För att få mer boost","För att slippa spela","För att byta rank"],"Jämnhet kommer av repetition."]]
+];
+function QS(){return S.quiz||(S.quiz={best:{},plays:0,right:0})}
+const shuf=a=>a.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+let Q=null;
+function startQuiz(g){
+  const pool=g==="mix"?shuf(QZ.flat()).slice(0,10):QZ[+g];
+  Q={g,i:0,score:0,sel:null,wrong:[],qs:shuf(pool).map(q=>({q:q[0],o:shuf(q[1].map((t,i)=>({t,ok:i===0}))),e:q[2],a:q[1][0]}))};
+  renderQ();
+}
+function renderQ(){
+  const B=$("qBody");
+  if(!Q){
+    const st=QS(),mine=curG();
+    B.innerHTML='<section class="card"><h2>Välj quiz</h2><p class="empty" style="font-size:14px;margin:0 0 4px">6 frågor per rank. Välj din egen rank eller en högre för att se vad som väntar.</p>'
+    +GN.map((n,i)=>{const b=st.best[i];return '<button class="qopt" data-a="start" data-g="'+i+'"><span>'+n+(i===mine?" · din rank":"")+'</span><span class="mn">'+(b?"Bäst: "+b.s+"/"+b.n:"Ej spelad")+'</span></button>'}).join("")
+    +'<button class="qopt" data-a="start" data-g="mix"><span>Blandat (10 frågor)</span><span class="mn">'+(st.best.mix?"Bäst: "+st.best.mix.s+"/"+st.best.mix.n:"Ej spelad")+'</span></button></section>'
+    +'<p class="empty" style="font-size:14px">Quiz spelade: '+st.plays+' · Rätta svar totalt: '+st.right+'</p>';
+    return;
+  }
+  if(Q.i>=Q.qs.length){
+    const st=QS(),n=Q.qs.length,k=Q.g,pct=Math.round(Q.score/n*100);
+    if(!st.best[k]||Q.score/n>st.best[k].s/st.best[k].n)st.best[k]={s:Q.score,n};
+    if(!Q.done){Q.done=1;st.plays++;st.right+=Q.score;save()}
+    B.innerHTML='<section class="card"><h2>'+(k==="mix"?"Blandat":GN[+k])+'</h2><div class="ringrow"><div class="ring" style="--p:'+pct+'"><span>'+Q.score+"/"+n+'</span></div><div><b>'+(pct>=90?"Fantastiskt!":pct>=60?"Bra jobbat!":"Bra försök!")+'</b><p class="empty" style="margin:4px 0 0;font-size:14px">'+(pct>=90?"Du kan det här.":pct>=60?"Du är på god väg.":"Ta en titt på träningspassen och försök igen.")+'</p></div></div></section>'
+    +(Q.wrong.length?'<section class="card"><h2>Det här missade du</h2><ul class="ins">'+Q.wrong.map(w=>'<li><b>'+esc(w.q)+'</b><br>Rätt svar: '+esc(w.a)+'</li>').join("")+'</ul></section>':"")
+    +'<div class="row"><button data-a="again">Spela igen</button><button data-a="home">Välj annat quiz</button></div>';
+    return;
+  }
+  const q=Q.qs[Q.i],ans=Q.sel!==null;
+  B.innerHTML='<div class="lbl"><span>'+(Q.g==="mix"?"Blandat":GN[+Q.g])+'</span><span>Fråga '+(Q.i+1)+" av "+Q.qs.length+'</span></div><div class="sbar"><i style="width:'+(Q.i/Q.qs.length*100)+'%"></i></div>'
+  +'<section class="card"><h2 style="font-size:19px;line-height:1.3">'+esc(q.q)+'</h2>'
+  +q.o.map((o,i)=>'<button class="qopt'+(ans&&o.ok?" ok":ans&&i===Q.sel?" no":"")+'" data-a="ans" data-i="'+i+'"'+(ans?" disabled":"")+'><span>'+esc(o.t)+'</span></button>').join("")
+  +(ans?'<p style="margin:14px 0 0"><b>'+(q.o[Q.sel].ok?"Rätt!":"Fel.")+'</b> '+esc(q.e)+'</p>':"")+'</section>'
+  +(ans?'<button class="cta" data-a="next">'+(Q.i+1>=Q.qs.length?"Se resultat":"Nästa fråga")+'</button>':"");
+}
+$("qBody").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-a]");if(!b)return;const a=b.dataset.a;
+  if(a==="start")startQuiz(b.dataset.g);
+  else if(a==="ans"){if(Q.sel!==null)return;Q.sel=+b.dataset.i;const o=Q.qs[Q.i].o[Q.sel];if(o.ok)Q.score++;else Q.wrong.push(Q.qs[Q.i]);renderQ();return}
+  else if(a==="next"){Q.i++;Q.sel=null;renderQ();window.scrollTo(0,0);return}
+  else if(a==="again")startQuiz(Q.g);
+  else if(a==="home"){Q=null;renderQ()}
+  window.scrollTo(0,0);
+});
+$("quizBtn").onclick=()=>{$("vTrain").hidden=true;$("vQuiz").hidden=false;Q=null;renderQ();window.scrollTo(0,0)};
+$("qBack").onclick=()=>{$("vQuiz").hidden=true;$("vTrain").hidden=false;window.scrollTo(0,0)};
+function show(v){
+  $("vLog").hidden=v!=="log";$("vTrain").hidden=v!=="train";$("vStats").hidden=v!=="stats";$("vSet").hidden=v!=="set";$("vQuiz").hidden=true;
+  $("tabLog").setAttribute("aria-selected",v==="log");$("tabTrain").setAttribute("aria-selected",v==="train");$("tabStats").setAttribute("aria-selected",v==="stats");$("tabSet").setAttribute("aria-selected",v==="set");
+  try{localStorage.setItem("rl-tab",v)}catch(e){}
+  if(v==="train")renderT();if(v==="stats")renderS();if(v==="set")renderSet();window.scrollTo(0,0);
+}
+$("tabLog").onclick=()=>show("log");$("tabTrain").onclick=()=>show("train");$("tabStats").onclick=()=>show("stats");$("tabSet").onclick=()=>show("set");
+$("mSel").add(new Option("Fullt pass","long"));$("mSel").add(new Option("Kort pass (ca 30 min)","short"));
+$("mSel").onchange=()=>{S.train.mode=$("mSel").value;save();renderT()};
+$("gSel").add(new Option("Min rank (automatiskt)","auto"));GN.forEach((n,i)=>$("gSel").add(new Option(n,i)));
+$("gSel").onchange=()=>{S.train.view=$("gSel").value;save();renderT()};
+applyCfg();render();renderT();
+try{const v=localStorage.getItem("rl-tab");if(v==="train"||v==="stats"||v==="set")show(v)}catch(e){}
+if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0){navigator.serviceWorker.register("sw.js").catch(()=>{})}
+</script>
+</body>
+</html>
