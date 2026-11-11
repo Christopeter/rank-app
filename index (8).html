@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RankUp – ranked 2v2</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1f5fe0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef2f8;--surface:#fff;--text:#101828;--muted:#5b6678;--line:#d6dde9;--blue:#1f5fe0;--orange:#d9560a;--blue-soft:#dbe7ff;--orange-soft:#ffe4d2;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1220;--surface:#141d30;--text:#e8edf6;--muted:#93a0b6;--line:#26334d;--blue:#4b86ff;--orange:#ff8a3d;--blue-soft:#1b2c52;--orange-soft:#4a2a14;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0b1220;--surface:#141d30;--text:#e8edf6;--muted:#93a0b6;--line:#26334d;--blue:#4b86ff;--orange:#ff8a3d;--blue-soft:#1b2c52;--orange-soft:#4a2a14;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:640px;margin:0 auto;padding:24px 16px 48px}
+h1{font:800 28px/1.1 "Barlow Condensed",Impact,sans-serif;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+.score{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.pct{font:800 76px/1 "Barlow Condensed",Impact,sans-serif}
+.pct small{font-size:36px;color:var(--muted)}
+.rec{font:600 24px/1 "Barlow Condensed",Impact,sans-serif;color:var(--muted)}
+.bar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--line);margin:14px 0 6px}
+.bar i{display:block;height:100%}.bar .w{background:var(--blue)}.bar .l{background:var(--orange)}
+.lbl{display:flex;justify-content:space-between;color:var(--muted);font-size:14px}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+button{font:inherit;cursor:pointer;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--text);padding:10px 14px}
+button:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.big{font:800 30px/1 "Barlow Condensed",Impact,sans-serif;padding:22px 10px;border:0;color:#fff}
+.big.w{background:var(--blue)}.big.l{background:var(--orange)}
+.big:active{transform:scale(.98)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;min-height:30px}
+.chip{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-weight:700;font-size:14px}
+.chip.W{background:var(--blue-soft);color:var(--blue)}.chip.L{background:var(--orange-soft);color:var(--orange)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row button{flex:1}
+.armed{border-color:var(--orange);color:var(--orange)}
+h2{font-size:17px;margin:0 0 10px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center}
+.stats b{display:block;font:800 30px/1.1 "Barlow Condensed",Impact,sans-serif}
+.stats span{color:var(--muted);font-size:14px}
+.wk{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:10px 0;border-top:1px solid var(--line)}
+.wk:first-of-type{border-top:0}
+.wk .bar{grid-column:1/-1;height:8px;margin:6px 0 0}
+.up{color:var(--blue)}.down{color:var(--orange)}
+.empty{color:var(--muted);margin:0}
+select{font:inherit;flex:1;padding:10px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--text)}
+select:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:11;background:var(--bg);border-bottom:1px solid var(--line)}
+.tabs div{max-width:640px;margin:0 auto;display:flex;gap:4px;padding:10px 16px;overflow-x:auto;scrollbar-width:none}.tabs div::-webkit-scrollbar{display:none}
+.tabs button{flex:1 1 auto;white-space:nowrap;font:800 clamp(12.5px,3.6vw,20px)/1 "Barlow Condensed",Impact,sans-serif;letter-spacing:.02em;text-transform:uppercase;padding:12px 8px}
+.tabs button[aria-selected="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:12}
+.ringrow{display:flex;gap:18px;align-items:center}
+.ring{--p:0;width:96px;height:96px;border-radius:50%;background:conic-gradient(var(--blue) calc(var(--p)*1%),var(--line) 0);display:grid;place-items:center;flex:none}
+.ring span{width:74px;height:74px;border-radius:50%;background:var(--surface);display:grid;place-items:center;font:800 28px/1 "Barlow Condensed",Impact,sans-serif}
+.focus{background:var(--blue-soft);border-radius:12px;padding:10px 12px;margin-top:14px}
+.focus .lbl{align-items:center;margin-bottom:2px}
+.it{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}
+.it input{width:22px;height:22px;accent-color:var(--blue);margin-top:2px;flex:none}
+.it .tx{flex:1}.it em{display:block;color:var(--muted);font-style:normal;font-size:14px}
+.it.on .tx b{text-decoration:line-through;color:var(--muted);font-weight:500}
+.mn{color:var(--muted);font-size:14px;white-space:nowrap}
+.sh{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.sh h2{margin:0}
+.sec.full{border-color:var(--blue)}
+.sbar{height:6px;border-radius:3px;background:var(--line);margin:8px 0 4px}.sbar i{display:block;height:100%;border-radius:3px;background:var(--blue)}
+.in{font:inherit;width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)}
+.er{display:flex;gap:8px;margin-top:10px}.er .mi{width:72px;flex:none}.hint{margin-top:6px;font-size:14px}
+.x{flex:none;padding:8px 12px}
+.tbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:2px solid var(--blue);padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px))}
+.tin{max-width:640px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.tin .row{flex:none}.tin .row button{flex:none}
+.clock{font:800 44px/1 "Barlow Condensed",Impact,sans-serif;font-variant-numeric:tabular-nums}
+.tbar .sbar{max-width:640px;margin:10px auto 0}
+.tm{flex:none;padding:6px 12px;border-radius:10px;color:var(--blue);font-weight:700}
+body.timing main{padding-bottom:200px}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center}
+.day{border:1px solid var(--line);border-radius:10px;padding:8px 2px;font-size:13px;color:var(--muted)}
+.day b{display:block;font:800 19px/1.1 "Barlow Condensed",Impact,sans-serif;color:var(--text)}
+.day.today{border-color:var(--blue);background:var(--blue-soft)}.day.fut{opacity:.45}
+.mini{height:6px;border-radius:3px;background:var(--line);margin:6px 4px;overflow:hidden;display:flex}.mini i{display:block;height:100%}
+.dots{min-height:14px;color:var(--blue);line-height:1;font-size:12px}
+.badges{display:flex;flex-wrap:wrap;gap:8px}
+.bd{flex:1 1 90px;border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center;font-size:13px;opacity:.4}
+.bd.on{opacity:1;border-color:var(--blue);background:var(--blue-soft)}.bd i{display:block;font-style:normal;font-size:24px}
+.cmpt{width:100%;border-collapse:collapse;font-size:14px}
+.cmpt th,.cmpt td{padding:8px 4px;text-align:right}.cmpt th:first-child,.cmpt td:first-child{text-align:left}
+.cmpt td{border-top:1px solid var(--line)}.cmpt th{color:var(--muted);font-weight:600}
+.chart{display:flex;align-items:flex-end;gap:6px;height:170px;overflow-x:auto;padding-top:6px}
+.col{flex:1 0 36px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;font-size:12px;color:var(--muted);gap:2px}
+.col i{display:block;width:100%;border-radius:6px 6px 0 0;min-height:2px}
+.col.cur i{outline:2px solid var(--text)}
+.ins{margin:0;padding-left:18px}.ins li{margin-bottom:8px}
+.stp{display:flex;align-items:center;gap:8px;margin-top:8px}.stp button{padding:2px 14px}
+.ta{font:13px/1.4 ui-monospace,Menlo,Consolas,monospace;width:100%;min-height:90px;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);margin-top:10px}
+.seg{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.seg button{padding:10px 14px;font-weight:600}
+.seg button[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
+.opt{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.opt button[aria-pressed="true"]{border-color:var(--blue);background:var(--blue-soft);font-weight:700}
+.opt .sw{width:44px;height:44px;border-radius:50%;border:3px solid transparent;padding:0}
+.opt .sw[aria-pressed="true"]{border-color:var(--text)}
+.tg{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line);cursor:pointer}
+.tg input{width:22px;height:22px;accent-color:var(--blue);flex:none}
+.set h3{font-size:15px;margin:16px 0 0;color:var(--muted);font-weight:600}.set h3:first-child{margin-top:0}
+.cta{width:100%;margin-bottom:16px;padding:14px;font-weight:700;border-color:var(--blue);color:var(--blue)}
+.qopt{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;margin-top:8px;padding:14px}
+.qopt.ok{border-color:var(--blue);background:var(--blue-soft);font-weight:700}
+.qopt.no{border-color:var(--orange);background:var(--orange-soft)}
+.qrow{margin-top:14px}.qbtns{display:flex;gap:8px;margin-top:6px}.qbtns button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px}
+.qopt:disabled{cursor:default;color:var(--text);opacity:1}
+.tabs .modes{padding-top:0;padding-bottom:10px}
+.tabs .modes button{font-size:15px;padding:8px 6px;letter-spacing:.04em}
+.tabs .modes button[aria-pressed="true"]{background:var(--blue-soft);border-color:var(--blue);color:var(--text)}
+@media (prefers-reduced-motion:reduce){.big:active{transform:none}}
+</style>
+</head>
+<body>
+<nav class="tabs" role="tablist"><div>
+  <button id="tabLog" role="tab" aria-selected="true">Matchlogg</button>
+  <button id="tabTrain" role="tab" aria-selected="false">Träning</button>
+  <button id="tabStats" role="tab" aria-selected="false">Statistik</button>
+  <button id="tabSet" role="tab" aria-selected="false">Inställningar</button>
+</div>
+<div class="modes" id="modeNav"><button data-m="1" aria-pressed="false">1v1</button><button data-m="2" aria-pressed="true">2v2</button><button data-m="3" aria-pressed="false">3v3</button></div></nav>
+<main>
+<div id="vLog">
+  <h1>Matchlogg</h1>
+  <p class="sub" id="logSub"></p>
+
+  <section class="card" aria-live="polite">
+    <div class="score"><div class="pct" id="pct">–</div><div class="rec" id="rec">0 vinster, 0 förluster</div></div>
+    <div class="bar"><i class="w" id="bw" style="width:0"></i><i class="l" id="bl" style="width:0"></i></div>
+    <div class="lbl"><span id="wkLbl">Vecka som pågår</span><span id="streak"></span></div>
+  </section>
+
+  <section class="card">
+    <h2>Min rank</h2>
+    <div class="row"><select id="tier" aria-label="Rank"></select><select id="div" aria-label="Division"></select></div>
+    <p class="empty" id="goal" style="margin-top:10px"></p>
+    <button id="rkSet" style="width:100%;margin-top:10px" hidden>Bekräfta att det här är min rank</button>
+  </section>
+
+  <div class="btns">
+    <button class="big w" id="win">Vinst</button>
+    <button class="big l" id="loss">Förlust</button>
+  </div>
+
+  <section class="card">
+    <h2>Senaste matcherna</h2>
+    <div class="chips" id="chips"></div>
+    <p class="empty" id="chipsEmpty">Inga matcher loggade ännu. Tryck på Vinst eller Förlust efter din första match.</p>
+  </section>
+
+  <div class="row" style="margin-bottom:16px">
+    <button id="undo">Ångra senaste</button>
+  </div>
+
+  <section class="card">
+    <h2>Totalt hittills</h2>
+    <div class="stats">
+      <div><b id="tPct">–</b><span>Vinstprocent</span></div>
+      <div><b id="tGames">0</b><span>Matcher</span></div>
+      <div><b id="tBest">–</b><span>Bästa veckan</span></div>
+    </div>
+  </section>
+
+
+</div>
+
+<div id="vTrain" hidden>
+  <h1>Träningspass</h1>
+  <p class="sub">Ett pass som anpassas efter din rank. Bocka av när du kör och ändra upplägget som du vill.</p>
+  <div class="card" style="padding:14px"><div class="row" style="align-items:center"><select id="gSel" aria-label="Visa pass för rank" style="flex:none;width:auto;min-width:180px"></select><select id="mSel" aria-label="Passets längd" style="flex:none;width:auto;min-width:160px"></select></div><p class="empty" id="gTxt" style="margin-top:10px;font-size:14px"></p></div>
+  <section class="card" aria-live="polite">
+    <div class="ringrow"><div class="ring" id="ring"><span id="ringTxt">0%</span></div>
+      <div><b id="tSum"></b><p class="empty" id="tMsg" style="margin-top:4px"></p></div></div>
+    <div class="focus"><div class="lbl"><span>Fokus i dina rankade matcher</span><button id="nf" style="padding:2px 12px">Nytt</button></div><b id="tFocus"></b></div>
+    <p class="empty" id="tLog" style="margin-top:12px;font-size:14px"></p>
+  </section>
+  <div class="row" style="margin-bottom:16px"><button id="editBtn"></button><button id="finish">Slutför pass</button></div>
+  <button class="cta" id="quizBtn">Quiz: testa din kunskap →</button>
+  <div id="secs"></div>
+  <div id="editTools" class="row" hidden><button id="addSec">+ Ny del</button><button id="defBtn">Återställ standardpass</button></div>
+</div>
+<div id="vQuiz" hidden>
+  <button id="qBack" style="margin-bottom:16px">← Tillbaka till träning</button>
+  <h1>Quiz</h1>
+  <div id="qBody"></div>
+</div>
+<div id="vStats" hidden>
+  <h1>Statistik</h1>
+  <p class="sub" id="sWeek"></p>
+  <div id="sBody"></div>
+</div>
+<div id="vSet" hidden>
+  <h1>Inställningar</h1>
+  <div class="seg" id="setNav"></div>
+  <div id="setDyn" class="set"></div>
+  <div id="pgBackup" hidden>
+  <section class="card">
+    <h2>Säkerhetskopia</h2>
+    <p class="empty" style="font-size:14px;margin-bottom:10px">Spara all din data i en fil eller som text, så kan du flytta den till en ny telefon eller en annan webbläsare.</p>
+    <div class="row"><button id="bkExp">Exportera fil</button><button id="bkCopy">Kopiera som text</button></div>
+    <textarea id="bkTxt" class="ta" placeholder="Klistra in en säkerhetskopia här, eller välj en fil nedan" aria-label="Säkerhetskopia som text"></textarea>
+    <div class="row" style="margin-top:10px"><button id="bkFile">Välj fil</button><button id="bkImp">Importera</button></div>
+    <input type="file" id="bkIn" accept=".json,application/json,text/plain" hidden>
+    <p class="empty" id="bkMsg" style="font-size:14px;margin:10px 0 0" aria-live="polite"></p>
+  </section>
+  <button id="reset" style="width:100%;margin-bottom:16px">Rensa all data</button>
+  </div>
+</div>
+</main>
+<div id="timer" class="tbar" hidden role="timer">
+  <div class="tin"><div><b id="tName"></b><div class="clock" id="tClock">00:00</div></div>
+    <div class="row"><button id="tPause">Pausa</button><button id="tPlus">+1 min</button><button id="tStop">Stoppa</button></div></div>
+  <div class="sbar"><i id="tBar" style="width:0"></i></div>
+</div>
+<script>
+const KEY="rl-matchlogg-v1";
+let S={};
+try{const r=localStorage.getItem(KEY);if(r){const p=JSON.parse(r);if(p&&typeof p==="object")S=p}}catch(e){}
+if(!S.train)S.train={focus:0,log:[],plans:{}};
+if(!S.train.plans){S.train.plans={};delete S.train.secs}
+if(!S.games){S.games=(S.cur||[]).map(r=>({r,d:iso(new Date())}));delete S.cur}
+if(!S.legacy){S.legacy=(S.weeks||[]).map(k=>({label:k.date,w:k.w,l:k.l}));delete S.weeks}
+if(!S.goal)S.goal=4;
+if(!S.cfg)S.cfg={};
+if(!S.ranks){S.ranks={"1":{t:9,d:3},"2":S.rank||{t:9,d:3},"3":{t:9,d:3}};delete S.rank}
+if(!S.rankLogs){S.rankLogs={"1":[],"2":S.rankLog||[{d:iso(new Date()),t:S.ranks["2"].t,v:S.ranks["2"].d}],"3":[]};delete S.rankLog}
+if(!S.mode)S.mode="2";
+S.games.forEach(x=>{if(!x.p)x.p="2"});
+Object.keys(S.train.plans).forEach(k=>{if(k.indexOf("|")<0){S.train.plans["2|"+k]=S.train.plans[k];delete S.train.plans[k]}});
+if(S.quiz&&S.quiz.best)Object.keys(S.quiz.best).forEach(k=>{if(k.indexOf("|")<0){S.quiz.best["2|"+k]=S.quiz.best[k];delete S.quiz.best[k]}});
+if(S.quiz&&S.quiz.best)Object.keys(S.quiz.best).forEach(k=>{if(/^\d\|\d$/.test(k))delete S.quiz.best[k]});
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const $=id=>document.getElementById(id);
+const pc=(w,l)=>w+l?Math.round(w/(w+l)*100):null;
+const cnt=a=>({w:a.filter(x=>x==="W").length,l:a.filter(x=>x==="L").length});
+const TIERS=[];["Bronze","Silver","Gold","Platinum","Diamond","Champion","Grand Champion"].forEach(n=>[1,2,3].forEach(i=>TIERS.push(n+" "+i)));TIERS.push("Supersonic Legend");
+const rankIdx=r=>r.t>=21?84:r.t*4+(r.d-1);
+const rankName=r=>r.t>=21?TIERS[21]:TIERS[r.t]+", div "+r.d;
+function goalText(){
+  const r=RNK(),gi=r.t>=21?7:Math.floor(r.t/3);
+  if(gi>=7)return "Du är på högsta ranken, Supersonic Legend.";
+  const x=(gi+1)*12-rankIdx(r);
+  return "Du är "+x+(x===1?" division":" divisioner")+" från "+GN[gi+1]+".";
+}
+function streakText(){
+  const c=GM();if(!c.length)return"";
+  const last=c[c.length-1].r;let n=0;
+  for(let i=c.length-1;i>=0&&c[i].r===last;i--)n++;
+  return (last==="W"?"Vinstsvit: ":"Förlustsvit: ")+n;
+}
+function render(){
+  const t=today(),W=weekData(mon(t)),w=W.w,l=W.l,g=W.g.length,p=pc(w,l);
+  $("logSub").textContent="Ranked "+MODEN[S.mode]+". Tryck efter varje match. Veckan nollställs automatiskt varje måndag.";
+  $("tier").value=RNK().t;$("div").value=RNK().d;$("div").disabled=RNK().t>=21;$("goal").textContent=RLG().length?goalText():"Rank ej vald i "+MODEN[S.mode]+". Välj din rank ovan så börjar appen följa den.";$("rkSet").hidden=!!RLG().length;
+  $("pct").innerHTML=p===null?"–":p+"<small>%</small>";
+  $("rec").textContent=w+(w===1?" vinst, ":" vinster, ")+l+(l===1?" förlust":" förluster");
+  $("bw").style.width=g?w/g*100+"%":"0";
+  $("bl").style.width=g?l/g*100+"%":"0";
+  $("wkLbl").textContent="Vecka "+isoWeek(t)+" (mån–sön)";
+  $("streak").textContent=cfg("streak")?streakText():"";
+  $("chips").innerHTML=W.g.slice(-cfg("chips")).map(x=>'<span class="chip '+x.r+'">'+(x.r==="W"?"V":"F")+'</span>').join("");
+  $("chipsEmpty").style.display=g?"none":"block";
+  const LG=S.mode==="2"?S.legacy:[];let tw=LG.reduce((a,k)=>a+k.w,0),tl=LG.reduce((a,k)=>a+k.l,0),best=null;
+  GM().forEach(x=>x.r==="W"?tw++:tl++);
+  LG.forEach(k=>{const q=pc(k.w,k.l);if(q!==null&&(best===null||q>best))best=q});
+  weeks().forEach(k=>{const q=pc(k.w,k.l);if(q!==null&&(best===null||q>best))best=q});
+  const tp=pc(tw,tl);
+  $("tPct").textContent=tp===null?"–":tp+"%";
+  $("tGames").textContent=tw+tl;
+  $("tBest").textContent=best===null?"–":best+"%";
+}
+function add(r){S.games.push({r,d:today(),p:S.mode});save();render()}
+$("win").onclick=()=>add("W");
+$("loss").onclick=()=>add("L");
+$("undo").onclick=()=>{let i=S.games.length-1;while(i>=0&&(S.games[i].p||"2")!==S.mode)i--;if(i>=0&&S.games[i].d>=mon(today()))S.games.splice(i,1);save();render()};
+function twoStep(btn,idle,armedText,action){
+  let t=null;
+  btn.onclick=()=>{
+    if(t){clearTimeout(t);t=null;btn.textContent=idle;btn.classList.remove("armed");action();return}
+    btn.textContent=armedText;btn.classList.add("armed");
+    t=setTimeout(()=>{t=null;btn.textContent=idle;btn.classList.remove("armed")},4000);
+  };
+}
+twoStep($("reset"),"Rensa all data","Tryck igen för att radera allt",()=>{S={games:[],legacy:[],ranks:{"1":{t:9,d:3},"2":{t:9,d:3},"3":{t:9,d:3}},rankLogs:{"1":[],"2":[],"3":[]},mode:S.mode,goal:S.goal,train:S.train,cfg:S.cfg};save();render()});
+TIERS.forEach((n,i)=>$("tier").add(new Option(n,i)));
+[1,2,3,4].forEach(i=>$("div").add(new Option("Division "+i,i)));
+$("tier").onchange=()=>{RNK().t=+$("tier").value;pushRank();save();render();renderT()};
+$("div").onchange=()=>{RNK().d=+$("div").value;pushRank();save();render()};
+function uid(){return Math.random().toString(36).slice(2,8)}
+const TCH=m=>["Freeplay-touches",m,"Slå bollen, växla ball cam och car cam, boosta och powerslida. Håll kontroll."];
+const KO=(m,h)=>["Kickoffs",m,h||"Träffa bollen rent vid varje kickoff."];
+const SF=m=>["Speedflip-kickoffs",m,"Träna grunderna i kickoffmiljö. Återställ efter varje träff för fler försök."];
+const RV=m=>["Recoveries: wavedash och half-flip",m,"Landa på hjulen och powerslida. Snabbare tillbaka ger högre tempo."];
+const REP=(m,h)=>["Titta på en förlust i replay",m,h||"Leta efter mål som kom av rotation eller boost."];
+const RK=(m,h)=>["Rankade matcher med ett fokus",m,h||"Välj ett enda mål per match."];
+const G=[
+["Bronze","Fokus: träffa bollen konsekvent, bilkontroll och boost.",[
+ ["Uppvärmning",[["Kör rakt in i bollen om och om igen",4,"Sikta mot nätet och följ efter bollen."],["Powerslide-svängar utan att bromsa",3,"Hoppa, landa, powerslida, gasa. Upprepa."]]],
+ ["Bollkontakt",[["Psyonix Rookie Striker",10,"Kör passen i träningsläget. Mål: förutsägbar träff mot nätet."],["Freeplay: skjut och följ efter",7,"Slå bollen mot väggen, följ efter och träffa den igen."]]],
+ ["Försvar och kickoffs",[["Psyonix Rookie Goalie",8,"Lär dig var du ska stå för att täcka målet."],KO(5)]],
+ ["Boost",[["Plocka stora boostpads på vägen",4,"Kör över dem utan att bromsa. Boost är din viktigaste resurs."]]],
+ ["Avslutning",[RK(10,"Välj ett: träffa bollen rent, eller håll koll på boosten."),REP(5)]]]],
+["Silver","Fokus: kraft och riktning på skotten, första touch och en rejäl snabb aerial.",[
+ ["Uppvärmning",[TCH(5),KO(3,"Träna timing och position.")]],
+ ["Skott och kontroll",[["Powershots",8,"Träffa bollen med fart och riktning mot målet."],["Markskott",7,"Ta emot och skjut rent. Rätt vinkel är viktigare än kraft."],["Första touch på studsar",5,"Ta emot bollen utan att knuffa iväg den."]]],
+ ["Luftspel",[["Snabb aerial",7,"Dubbelhopp, håll boost, air roll för att hålla dig plan. Landa rent efteråt."]]],
+ ["Försvar",[["Psyonix Goalie, Rookie till Pro",8,"Läs skottet och ställ dig rätt innan du går på."],["Rensa bollen ur hörnet",5,"Slå den längs väggen, inte rakt in i den."]]],
+ ["Avslutning",[RK(10),REP(5)]]]],
+["Gold","Fokus: konsistens. Missa färre träffar och släpp in färre mjuka mål.",[
+ ["Uppvärmning",[TCH(5),KO(3)]],
+ ["Konsistens",[["Returer och rebounds",7,"Hamna rätt för returen efter ett skott och dra nytta av den."],["Skott du inte får missa",7,"Fokus på ren träff, inte på svåra vinklar."]]],
+ ["Mekanik",[RV(6),["Grundläggande aerials",8,"Få ren kontakt innan du jagar kraft. Dubbelhopp först, sedan snabb aerial."]]],
+ ["Försvar och hörn",[["Saves och power clears",12,"Här bör mest tid gå på Gold och Platinum: släpp inte in mjuka mål."],["Hörnspel",6,"Läs bollens bana ut ur hörnet innan du går på."]]],
+ ["Avslutning",[RK(10),REP(5)]]]],
+["Platinum","Fokus: första touch i luften, väggläsning och att inte släppa in mjuka mål.",[
+ ["Uppvärmning",[TCH(5),SF(4)]],
+ ["Markspel",[["Dribbling och flick, grunder",8,"Studsdribbling och boll på taket, sedan skott. Kontroll före kraft."],["Backboard reads",8,"Läs bollen när den kommer ner från backboarden och placera dig rätt."]]],
+ ["Luftspel",[["Snabba aerials",8,"Första touchen i luften är det viktigaste. Landa rent efteråt."],["Aerial-skott med kraft",6,"Träffa bollen mot målet, inte bara i bollen."]]],
+ ["Försvar och position",[["Saves och power clears",10,"Steget till Diamond handlar mest om att inte släppa in lätta mål."],["Shadow defense mot All-Star-bot",10,"Sista man, 1–2 bilängder bakom bollbäraren. Matcha farten och utmana bara vid tydlig fördel."]]],
+ ["Avslutning",[RK(15,"Välj ett fokus, till exempel alltid sista man när du är djupast."),REP(5)]]]],
+["Diamond","Fokus: tempo, väggspel och luftläsning. Rotation och tålamod avgör.",[
+ ["Uppvärmning",[TCH(5),SF(4),RV(3)]],
+ ["Väggar och backboard",[["Backboard reads",10,"Läs studsarna tidigt och ta bollen på väg ner."],["Väggspel och väggpass",6,"Spela bollen runt motståndaren längs väggen."]]],
+ ["Luftspel",[["Snabba aerials och redirects",10,"Läs obekväma vinklar snabbt. Ren första touch."],["Första touch: mark, vägg, luft",6,"Ta emot bollen så att du hamnar i läge för nästa spel."]]],
+ ["Försvar och beslut",[["Shadow defense och sista man",12,"Pressa åt sidan, utmana inte i onödan och släpp 50/50 när lagkamraten är närmare."],["Corner saves",6,"Läs bollens bana i hörnet innan du går på."]]],
+ ["Avslutning",[RK(15),REP(10,"Räkna mål som kom av rotation, boost eller överengagemang.")]]]],
+["Champion","Fokus: jämn mekanik i luft och på mark, och tydliga beslut i 50/50.",[
+ ["Uppvärmning",[TCH(5),SF(4),RV(3)]],
+ ["Mekanik",[["Dubbeltryck (double tap)",10,"Backboard-dubbeltryck. Många försök per minut slår få perfekta."],["Air dribble setup",10,"Fokusera på första touchen som skapar läget, inte bara avslutet."],["Dribbling och flick",10,"Välj en flick och upprepa. Hoppa över replayen för fler försök."]]],
+ ["Beslut",[["50/50 och challenges",8,"Gå fullt eller backa. Ett halvt försök ger motståndaren bollen."],["Pass och redirects",8,"Hitta rätt vinkel och fart i passet."]]],
+ ["Avslutning",[RK(30,"Sätt ett fokus och en förlustgräns."),REP(5,"Titta på boost, tid i supersonic och hur ofta du är andra bil på bollen.")]]]],
+["Grand Champion","Fokus: fart, få misstag och snabba beslut.",[
+ ["Uppvärmning",[TCH(8),SF(4)]],
+ ["Luftkontroll",[["Aerial car control",15,"Styr bilen i luften med små rörelser och håll tempot uppe."],["Fria luftövningar",10,"Ringar och riktningsbyten i freeplay. Ringarna är bara en guide."]]],
+ ["Konsistens",[["Power shots med tidspress",10,"30 sekunder per skott håller tempot realistiskt."],["Redirects i hög fart",10,"Obekväma vinklar i hög hastighet."],["Pinches och avancerade flicks",8,"Fokusera på att få dem att sitta oftare."]]],
+ ["Beslut och analys",[RK(30,"En session med förlustgräns."),REP(10,"Nitpicka dina egna misstag. Be gärna någon som är bättre om en andra åsikt.")]]]],
+["Supersonic Legend","Fokus: underhåll av mekaniken, minimera misstag och granska beslut.",[
+ ["Uppvärmning",[["Mekanik-pack som uppvärmning",10,"Välj det du är minst säker på idag."],SF(4)]],
+ ["Mekanik",[["Aerial car control och freestyle",15,"Kontroll först, flow efter."],["Flip resets och dubbeltryck",10,"Räkna din träffprocent så att du ser om det blir jämnare."]]],
+ ["Konsistens",[["Power shots under tidspress",10,"Jämnhet över många försök."],RV(5)]],
+ ["Beslut och analys",[["Replay review: position och beslut",15,"Leta efter beslut du kunde tagit tidigare."],RK(30,"En session med förlustgräns.")]]]]
+];
+const GN=G.map(x=>x[0]);
+const SH=[
+ [[0,1,3],[1,0,8],[2,1,4],[3,0,3],[4,0,8]],
+ [[0,0,4],[1,0,6],[1,2,4],[2,0,5],[4,0,8]],
+ [[0,0,4],[1,0,5],[2,0,4],[3,0,7],[4,0,8]],
+ [[0,0,3],[0,1,3],[1,1,5],[2,0,5],[3,1,6],[4,0,6]],
+ [[0,1,3],[1,0,5],[2,0,5],[3,0,7],[4,0,8]],
+ [[0,1,3],[1,0,6],[1,1,6],[2,0,5],[3,1,5]],
+ [[0,1,3],[1,0,8],[2,0,6],[2,1,5],[3,1,6]],
+ [[0,0,6],[1,0,8],[2,0,6],[3,0,8]]
+];
+const mkI=([t,m,h],mm)=>({id:uid(),t,m:mm===undefined?m:mm,h:h||"",d:false});
+function defTrainBase(g,short){
+  if(!short)return {secs:G[g][2].map(([n,its])=>({id:uid(),n,items:its.map(x=>mkI(x))}))};
+  const secs=[];
+  SH[g].forEach(([si,ii,m])=>{const sec=G[g][2][si];let o=secs.find(x=>x.si===si);if(!o){o={id:uid(),n:sec[0],items:[],si};secs.push(o)}o.items.push(mkI(sec[1][ii],m))});
+  secs.forEach(o=>delete o.si);
+  return {secs};
+}
+const MODEN={"1":"1v1","2":"2v2","3":"3v3"};
+const MX={"1":[
+ [["Boostkontroll i 1v1",5,"Plocka små pads och gå inte på bollen utan boost. I 1v1 är boost allt."],["Trygga utmaningar",5,"Utmana bara med boost och position. Annars backa och skugga."]],
+ [["Boost-disciplin och kickoffs",6,"Planera nästa boost innan du slår bollen."],["Utmaningar och recoveries",6,"Gå in när du kan, annars täck. Landa och ta tillbaka position snabbt."]],
+ [["Boostkontroll och tempo",6,"Ta motståndarens boost och håll bollen under kontroll."],["Kickoff-varianter",5,"Öva flera kickoffs och hur du följer upp dem."]]],
+"3":[
+ [["Rotation i 3v3",6,"Första man pressar, andra stödjer och tredje täcker målet."],["Undvik dubbelgång",5,"Gå inte på samma boll som en lagkamrat. Säg vem som tar den."]],
+ [["Rotation och spacing",6,"Håll avstånd till lagkamraterna så att ni inte hamnar i samma yta."],["Passningar och andra touch",6,"Hitta lagkamraten och spela andra touchen."]],
+ [["Rotation under press",6,"Behåll formen även när motståndaren pressar. Byt roll snabbt."],["Passspel och redirects",6,"Planera flera touches framåt och använd lagkamratens läge."]]]};
+const REPL=[[" och släpp 50/50 när lagkamraten är närmare",""],["hur ofta du är andra bil på bollen","hur ofta du går på bollen utan boost"]];
+function defTrain(g,short,mode){
+  const P=defTrainBase(g,short);
+  if(!mode||mode==="2")return P;
+  const items=MX[mode][g<3?0:g<5?1:2];
+  P.secs.forEach(sc=>sc.items.forEach(it=>{
+    if(mode==="1")REPL.forEach(([a,b])=>{if(it.h.indexOf(a)>=0)it.h=it.h.replace(a,b)});
+    if(it.t==="Rankade matcher med ett fokus"){it.t="Rankade "+MODEN[mode]+" med ett fokus";if(it.h==="Välj ett enda mål per match.")it.h=mode==="1"?"Välj ett: boostkontroll, trygga utmaningar eller återhämtning.":"Välj ett: rotation, passningar eller att undvika dubbelgång."}
+  }));
+  const sec={id:uid(),n:MODEN[mode]+"-fokus",items:(short?items.slice(0,1):items).map(([t,m,h])=>({id:uid(),t,m:short?5:m,h,d:false}))};
+  P.secs.splice(P.secs.length-1,0,sec);
+  return P;
+}
+function curG(){const v=S.train.view;return v&&v!=="auto"?+v:(RNK().t>=21?7:Math.floor(RNK().t/3))}
+const isShort=()=>S.train.mode==="short";
+function pk(){return S.mode+"|"+curG()+(isShort()?"s":"")}
+function PL(){const T=S.train,k=pk();return T.plans[k]||(T.plans[k]=defTrain(curG(),isShort(),S.mode))}
+const FOCI=["Alltid veta vem som är sista man","Aldrig gå på bollen med under 30 boost","Säg “I got it!” varje gång du går på en boll","Släpp 50/50 när lagkamraten är närmare","Plocka små pads på vägen tillbaka","Ta ett andetag efter varje insläppt mål"];
+const esc=x=>String(x).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let edit=false;
+const TR=()=>S.train;
+function renderT(){
+  const T=TR(),P=PL(),all=P.secs.flatMap(x=>x.items),tot=all.reduce((a,i)=>a+i.m,0),dn=all.filter(i=>i.d),dm=dn.reduce((a,i)=>a+i.m,0);
+  const p=all.length?Math.round(dn.length/all.length*100):0;
+  $("ring").style.setProperty("--p",p);$("ringTxt").textContent=p+"%";
+  $("tSum").textContent=dn.length+" av "+all.length+" övningar klara · "+(tot-dm)+" min kvar";
+  $("tMsg").textContent=p===0?"Redo när du är det. Börja med uppvärmningen.":p<50?"Bra start, fortsätt i samma tempo.":p<100?"Över halvvägs. Dra i mål!":"Passet är klart. Bra jobbat!";
+  $("tFocus").textContent=FOCI[T.focus%FOCI.length];
+  $("gSel").value=T.view||"auto";$("mSel").value=T.mode||"long";$("gTxt").textContent=MODEN[S.mode]+" · "+(T.view&&T.view!=="auto"?"Visar pass för ":"Anpassat efter din rank: ")+GN[curG()]+". "+G[curG()][1]+(isShort()?" Detta är kortversionen.":"");
+  const wk=T.log.filter(d=>Date.now()-new Date(d).getTime()<7*864e5).length;
+  $("tLog").textContent="Pass senaste 7 dagarna: "+wk+" · Totalt: "+T.log.length+(T.log.length?" · Senast: "+T.log[T.log.length-1]:"");
+  $("finish").style.display=dn.length&&!edit?"":"none";
+  $("editBtn").textContent=edit?"Klar med redigering":"Redigera pass";
+  $("editTools").hidden=!edit;
+  $("secs").innerHTML=P.secs.map(sc=>{
+    const n=sc.items.length,d=sc.items.filter(i=>i.d).length,m=sc.items.reduce((a,i)=>a+i.m,0);
+    const head=edit?'<input class="in" data-f="sn" data-s="'+sc.id+'" value="'+esc(sc.n)+'" aria-label="Namn på del">':'<div class="sh"><h2>'+esc(sc.n)+'</h2><span class="mn">'+d+"/"+n+" · "+m+' min</span></div>';
+    const bar=edit?"":'<div class="sbar"><i style="width:'+(n?d/n*100:0)+'%"></i></div>';
+    const items=sc.items.map(i=>{
+      const a='data-s="'+sc.id+'" data-i="'+i.id+'"';
+      if(edit)return '<div class="er"><input class="in" '+a+' data-f="t" value="'+esc(i.t)+'" aria-label="Övning"><input class="in mi" type="number" min="0" max="120" '+a+' data-f="m" value="'+i.m+'" aria-label="Minuter"><button class="x" data-a="delI" '+a+' aria-label="Ta bort övning">✕</button></div><input class="in hint" '+a+' data-f="h" value="'+esc(i.h)+'" placeholder="Tips (valfritt)" aria-label="Tips">';
+      return '<label class="it'+(i.d?" on":"")+'"><input type="checkbox" '+a+' data-a="chk"'+(i.d?" checked":"")+'><span class="tx"><b>'+esc(i.t)+'</b>'+(i.h?"<em>"+esc(i.h)+"</em>":"")+'</span><span class="mn">'+i.m+' min</span>'+(i.m>0?'<button class="tm" data-a="tim" '+a+' aria-label="'+(act(i)?(TM.paused?"Fortsätt timer":"Pausa timer"):"Starta timer")+'">'+(act(i)&&!TM.paused?"❚❚":"▶")+'</button>':"")+'</label>' ;
+    }).join("");
+    const tools=edit?'<div class="row" style="margin-top:10px"><button data-a="addI" data-s="'+sc.id+'">+ Lägg till övning</button><button data-a="delS" data-s="'+sc.id+'">Ta bort del</button></div>':"";
+    return '<section class="card sec'+(n&&d===n&&!edit?" full":"")+'">'+head+bar+items+tools+"</section>";
+  }).join("");
+}
+function secOf(el){return PL().secs.find(x=>x.id===el.dataset.s)}
+$("secs").addEventListener("change",e=>{
+  const t=e.target,sc=secOf(t);if(!sc)return;
+  const it=sc.items.find(x=>x.id===t.dataset.i);
+  if(t.dataset.a==="chk"&&it)it.d=t.checked;
+  else if(t.dataset.f==="sn")sc.n=t.value;
+  else if(it&&t.dataset.f==="t")it.t=t.value;
+  else if(it&&t.dataset.f==="m")it.m=Math.max(0,Math.min(120,Math.round(+t.value)||0));
+  else if(it&&t.dataset.f==="h")it.h=t.value;
+  else return;
+  save();renderT();
+});
+$("secs").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-a]");if(!b)return;
+  const sc=secOf(b),T=TR();if(!sc)return;
+  if(b.dataset.a==="addI")sc.items.push({id:uid(),t:"Ny övning",m:5,h:"",d:false});
+  else if(b.dataset.a==="delI")sc.items=sc.items.filter(x=>x.id!==b.dataset.i);
+  else if(b.dataset.a==="delS"){const P=PL();P.secs=P.secs.filter(x=>x.id!==sc.id)}
+  else if(b.dataset.a==="tim"){const it=sc.items.find(x=>x.id===b.dataset.i);if(it){if(act(it))pauseT();else startT(sc,it)}return}
+  else return;
+  save();renderT();
+});
+$("editBtn").onclick=()=>{edit=!edit;renderT()};
+$("addSec").onclick=()=>{PL().secs.push({id:uid(),n:"Ny del",items:[]});save();renderT()};
+$("nf").onclick=()=>{TR().focus++;save();renderT()};
+twoStep($("defBtn"),"Återställ standardpass","Tryck igen för att återställa",()=>{S.train.plans[pk()]=defTrain(curG(),isShort(),S.mode);save();renderT()});
+twoStep($("finish"),"Slutför pass","Tryck igen för att logga passet",()=>{const T=TR();T.log.push(new Date().toLocaleDateString("sv-SE"));PL().secs.forEach(x=>x.items.forEach(i=>i.d=false));T.focus++;save();renderT()});
+let TM=null,AC=null,WL=null;const T0=document.title;
+function unlock(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();AC.resume()}catch(e){}}
+function beepSound(){try{unlock();[0,.35,.7].forEach(t=>{const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=880;g.gain.value=.15;o.connect(g);g.connect(AC.destination);o.start(AC.currentTime+t);o.stop(AC.currentTime+t+.2)})}catch(e){}}
+function beep(){if(cfg("snd"))beepSound();if(cfg("vib")&&navigator.vibrate)navigator.vibrate([200,100,200])}
+async function wl(on){try{if(on&&navigator.wakeLock)WL=await navigator.wakeLock.request("screen");else if(WL){await WL.release();WL=null}}catch(e){}}
+const clk=ms=>{const q=Math.max(0,Math.ceil(ms/1000));return String(Math.floor(q/60)).padStart(2,"0")+":"+String(q%60).padStart(2,"0")};
+function drawT(){
+  if(!TM){$("timer").hidden=true;document.body.classList.remove("timing");document.title=T0;return}
+  const left=TM.done?0:TM.paused?TM.left:TM.end-Date.now();
+  $("timer").hidden=false;document.body.classList.add("timing");
+  $("tName").textContent=(TM.done?"Klart: ":"")+TM.name;
+  $("tClock").textContent=clk(left);
+  $("tBar").style.width=Math.min(100,Math.max(0,(1-left/TM.total)*100))+"%";
+  $("tPause").style.display=$("tPlus").style.display=TM.done?"none":"";
+  $("tPause").textContent=TM.paused?"Fortsätt":"Pausa";
+  $("tStop").textContent=TM.done?"Stäng":"Stoppa";
+  document.title=TM.done?T0:clk(left)+" – "+TM.name;
+}
+function doneT(){
+  TM.done=true;beep();wl(false);
+  const sc=PL().secs.find(x=>x.id===TM.sid),it=sc&&sc.items.find(x=>x.id===TM.iid);
+  if(it){it.d=true;save();renderT()}
+  drawT();
+}
+setInterval(()=>{if(TM&&!TM.done&&!TM.paused){if(TM.end-Date.now()<=0)doneT();else drawT()}},250);
+function startT(sc,it){unlock();if(cfg("wake"))wl(true);TM={name:it.t,sid:sc.id,iid:it.id,total:it.m*60000,end:Date.now()+it.m*60000,paused:false,left:0,done:false};drawT();renderT()}
+function pauseT(){if(!TM)return;if(TM.paused){TM.end=Date.now()+TM.left;TM.paused=false}else{TM.left=TM.end-Date.now();TM.paused=true}drawT();renderT()}
+$("tPause").onclick=pauseT;
+const act=i=>TM&&!TM.done&&TM.iid===i.id;
+$("tPlus").onclick=()=>{if(!TM)return;TM.total+=60000;if(TM.paused)TM.left+=60000;else TM.end+=60000;drawT()};
+$("tStop").onclick=()=>{TM=null;wl(false);drawT();renderT()};
+const DN=["Mån","Tis","Ons","Tors","Fre","Lör","Sön"];
+function iso(d){return d.toLocaleDateString("sv-SE")}
+function today(){return iso(new Date())}
+function addD(x,n){const d=new Date(x+"T12:00:00");d.setDate(d.getDate()+n);return iso(d)}
+function mon(x){return addD(x,-((new Date(x+"T12:00:00").getDay()+6)%7))}
+function isoWeek(x){const t=new Date(x+"T12:00:00"),d=new Date(Date.UTC(t.getFullYear(),t.getMonth(),t.getDate())),n=d.getUTCDay()||7;d.setUTCDate(d.getUTCDate()+4-n);return Math.ceil(((d-new Date(Date.UTC(d.getUTCFullYear(),0,1)))/864e5+1)/7)}
+function fmt(x){return new Date(x+"T12:00:00").toLocaleDateString("sv-SE",{day:"numeric",month:"short"})}
+const sg=n=>(n>0?"+":"")+n;
+function weekData(m){const e=addD(m,6),g=GM().filter(x=>x.d>=m&&x.d<=e),w=g.filter(x=>x.r==="W").length;return {m,e,g,w,l:g.length-w,sess:S.train.log.filter(d=>d>=m&&d<=e).length}}
+function rankAt(d){const L=RLG();if(!L.length)return RNK();let r=L[0];for(const x of L){if(x.d<=d)r=x}return {t:r.t,d:r.v}}
+function rankChange(m){const e=addD(m,6),t=today();return rankIdx(rankAt(e>t?t:e))-rankIdx(rankAt(addD(m,-1)))}
+function pushRank(){const t=today(),e={d:t,t:RNK().t,v:RNK().d},L=RLG();if(!L.length){const gd=GM().map(x=>x.d).sort();e.d=gd.length?gd[0]:t}if(L.length&&L[L.length-1].d===t)L[L.length-1]=e;else L.push(e)}
+function weeks(){const ds=[...GM().map(x=>x.d),...S.train.log,today()].sort(),out=[];for(let m=mon(ds[0]);m<=mon(today());m=addD(m,7))out.push(weekData(m));return out}
+function maxStreak(g){let b=0,c=0;g.forEach(x=>{c=x.r==="W"?c+1:0;if(c>b)b=c});return b}
+let cmpOpen=false;
+function cmpHTML(cur,others){
+  const lg=S.mode==="2"?S.legacy:[];
+  if(!others.length&&!lg.length)return '<section class="card"><p class="empty">Det finns inga tidigare veckor att jämföra med ännu. Kom tillbaka efter nästa måndag.</p></section>';
+  const ow=others.reduce((a,x)=>a+x.w,0)+lg.reduce((a,x)=>a+x.w,0),ol=others.reduce((a,x)=>a+x.l,0)+lg.reduce((a,x)=>a+x.l,0),pool=pc(ow,ol),p=pc(cur.w,cur.l);
+  const avg=f=>others.length?Math.round(others.reduce((a,x)=>a+f(x),0)/others.length*10)/10:"–";
+  const mx=f=>others.length?Math.max(...others.map(f)):"–";
+  const cand=[...others.filter(x=>x.g.length),...lg],big=cand.filter(x=>x.w+x.l>=3),pick=big.length?big:cand;
+  const bestP=pick.length?Math.max(...pick.map(x=>pc(x.w,x.l))):null,rcs=others.map(x=>rankChange(x.m));
+  const rows=[["Matcher",cur.g.length,avg(x=>x.g.length),mx(x=>x.g.length)],["Vinstprocent",p===null?"–":p+" %",pool===null?"–":pool+" %",bestP===null?"–":bestP+" %"],["Träningspass",cur.sess,avg(x=>x.sess),mx(x=>x.sess)],["Rank (div)",sg(rankChange(cur.m)),rcs.length?sg(Math.round(rcs.reduce((a,b)=>a+b,0)/rcs.length*10)/10):"–",rcs.length?sg(Math.max(...rcs)):"–"]];
+  const ch=[...lg.map(x=>({lb:x.label,pct:pc(x.w,x.l),s:0})),...others.map(x=>({lb:"v"+isoWeek(x.m),pct:pc(x.w,x.l),s:x.sess})),{lb:"v"+isoWeek(cur.m),pct:p,s:cur.sess,cur:1}].slice(-12);
+  const bars=ch.map(c=>'<div class="col'+(c.cur?" cur":"")+'"><span>'+(c.pct===null?"–":c.pct)+'</span><i style="height:'+(c.pct||0)*0.9+'px;background:'+(c.pct>=50?"var(--blue)":"var(--orange)")+'"></i><span>'+c.lb+'</span><span style="color:var(--blue);font-size:10px;min-height:12px">'+"●".repeat(Math.min(c.s,7))+'</span></div>').join("");
+  return '<section class="card"><h2>Denna vecka mot tidigare</h2><div style="overflow-x:auto"><table class="cmpt"><tr><th></th><th>Denna vecka</th><th>Snitt</th><th>Bästa</th></tr>'+rows.map(r=>'<tr><td>'+r[0]+'</td><td><b>'+r[1]+'</b></td><td>'+r[2]+'</td><td>'+r[3]+'</td></tr>').join("")+'</table></div></section><section class="card"><h2>Vinstprocent per vecka</h2><div class="chart">'+bars+'</div><p class="empty" style="font-size:13px;margin-top:8px">Staplarna visar vinstprocent, prickarna antal träningspass. Svart ram är den här veckan.</p></section>';
+}
+function renderS(){
+  const t=today(),m=mon(t),all=weeks(),cur=all[all.length-1],prev=all[all.length-2],others=all.slice(0,-1),goal=S.goal;
+  const p=pc(cur.w,cur.l),rc=rankChange(m),tp=Math.min(100,Math.round(cur.sess/goal*100));
+  $("sWeek").textContent="Vecka "+isoWeek(t)+", "+fmt(cur.m)+" till "+fmt(cur.e)+" · "+MODEN[S.mode]+" · nollställs automatiskt varje måndag";
+  const days=DN.map((n,i)=>{const d=addD(m,i),gs=cur.g.filter(x=>x.d===d),w=gs.filter(x=>x.r==="W").length,l=gs.length-w,sx=S.train.log.filter(x=>x===d).length;
+    return '<div class="day'+(d===t?" today":"")+(d>t?" fut":"")+'"><span>'+n+'</span><b>'+(gs.length?w+"–"+l:"·")+'</b><div class="mini"><i style="width:'+(gs.length?w/gs.length*100:0)+'%;background:var(--blue)"></i><i style="width:'+(gs.length?l/gs.length*100:0)+'%;background:var(--orange)"></i></div><div class="dots">'+"●".repeat(Math.min(sx,5))+'</div></div>'}).join("");
+  const lastT=S.train.log.length?S.train.log[S.train.log.length-1]:null,ago=lastT?Math.round((new Date(t+"T12:00:00")-new Date(lastT+"T12:00:00"))/864e5):null;
+  const vs=prev&&prev.g.length&&cur.g.length?p-pc(prev.w,prev.l):null;
+  const unset=!RLG().length,idx=rankIdx(RNK()),gi=RNK().t>=21?7:Math.floor(RNK().t/3),left=(gi+1)*12-idx,nxt=!unset&&gi<7?GN[gi+1]:null;
+  const bs=[["🎯","Veckomål",cur.sess>=goal],["🛡","Obesegrad",cur.g.length>=3&&cur.l===0],["🔥","5 vinster i rad",maxStreak(cur.g)>=5],["⚡","15 matcher",cur.g.length>=15],["📈","Rank upp",rc>0]];
+  const ins=[],gw=others.filter(x=>x.g.length>=3),hi=gw.filter(x=>x.sess>=goal),lo=gw.filter(x=>x.sess<goal),f=a=>pc(a.reduce((s,x)=>s+x.w,0),a.reduce((s,x)=>s+x.l,0));
+  if(hi.length&&lo.length){const d=f(hi)-f(lo);ins.push("Veckor där du nått träningsmålet: "+f(hi)+" % vinster, mot "+f(lo)+" % övriga veckor ("+sg(d)+" procentenheter)."+(gw.length<6?" Det är få veckor än, så ta det försiktigt.":""))}
+  const bd=DN.map((n,i)=>{const gs=GM().filter(x=>(new Date(x.d+"T12:00:00").getDay()+6)%7===i);return {n,g:gs.length,p:pc(gs.filter(x=>x.r==="W").length,gs.filter(x=>x.r==="L").length)}}).filter(x=>x.g>=5).sort((a,b)=>b.p-a.p);
+  if(bd.length>=2)ins.push("Din bästa dag är "+bd[0].n+" ("+bd[0].p+" % vinster) och sämsta "+bd[bd.length-1].n+" ("+bd[bd.length-1].p+" %).");
+  let k=0;for(let i=all.length-1;i>=0;i--){if(all[i].sess>=goal)k++;else if(i===all.length-1)continue;else break}
+  if(k>=2)ins.push(k+" veckor i rad med nått träningsmål.");
+  const rd=RLG().length?idx-rankIdx(rankAt(RLG()[0].d)):0;if(rd!==0)ins.push("Sedan första rank-loggen har du gått "+(rd>0?"upp ":"ner ")+Math.abs(rd)+(Math.abs(rd)===1?" division.":" divisioner."));
+  if(!ins.length)ins.push("Spela och träna några veckor så dyker mönster upp här.");
+  $("sBody").innerHTML='<div class="card"><div class="days">'+days+'</div><p class="empty" style="font-size:13px;margin:10px 0 0">Blått är vinster, orange förluster och prickarna är träningspass.</p></div>'
+  +'<section class="card"><h2>Träning</h2><div class="ringrow"><div class="ring" style="--p:'+tp+'"><span>'+cur.sess+"/"+goal+'</span></div><div><b>'+(cur.sess>=goal?"Veckomålet är nått!":(goal-cur.sess)+" pass kvar till veckomålet")+'</b><p class="empty" style="margin-top:4px;font-size:14px">'+(ago===null?"Inget pass loggat ännu.":ago===0?"Senaste passet: i dag.":"Senaste passet: för "+ago+(ago===1?" dag":" dagar")+" sedan.")+'</p><div class="stp"><span>Veckomål</span><button data-a="g-" aria-label="Minska veckomål">−</button><b>'+goal+'</b><button data-a="g+" aria-label="Öka veckomål">+</button></div></div></div><p class="empty" style="margin:12px 0 0;font-size:14px">3–4 pass i veckan räcker för de flesta. Både korta och långa pass räknas, och ett fokuserat pass slår ett långt utan fokus.</p></section>'
+  +'<section class="card"><h2>Matcher</h2><div class="stats"><div><b>'+cur.w+'</b><span>Vinster</span></div><div><b>'+cur.l+'</b><span>Förluster</span></div><div><b>'+(p===null?"–":p+"%")+'</b><span>Vinstprocent</span></div></div><p class="empty" style="margin:12px 0 0;font-size:14px">'+(vs===null?"Ingen jämförelse mot förra veckan ännu.":"Mot förra veckan: "+sg(vs)+" procentenheter.")+" "+(streakText()?streakText()+". ":"")+(maxStreak(cur.g)?"Längsta vinstsvit i veckan: "+maxStreak(cur.g)+".":"")+'</p></section>'
+  +'<section class="card"><h2>Rank</h2><b style="font-size:20px">'+(unset?"Rank ej vald":rankName(RNK()))+'</b><p class="empty" style="margin:4px 0 0;font-size:14px">'+(unset?"Välj din rank under Matchlogg.":rc===0?"Oförändrad den här veckan.":sg(rc)+(Math.abs(rc)===1?" division":" divisioner")+" den här veckan.")+(nxt?" "+left+(left===1?" division":" divisioner")+" till "+nxt+".":"")+'</p>'+(nxt?'<div class="sbar"><i style="width:'+(12-left)/12*100+'%"></i></div>':"")+'</section>'
+  +'<section class="card"><h2>Veckans märken</h2><div class="badges">'+bs.map(b=>'<div class="bd'+(b[2]?" on":"")+'"><i>'+b[0]+'</i>'+b[1]+'</div>').join("")+'</div></section>'
+  +'<section class="card"><h2>Mönster</h2><ul class="ins">'+ins.map(x=>"<li>"+x+"</li>").join("")+'</ul></section>'
+  +'<button data-a="cmp" style="width:100%;margin-bottom:16px;border-color:var(--blue);color:var(--blue);font-weight:700">'+(cmpOpen?"Dölj jämförelsen":"Jämför med tidigare veckor")+'</button>'+(cmpOpen?cmpHTML(cur,others):"");
+}
+$("sBody").addEventListener("click",e=>{const b=e.target.closest("[data-a]");if(!b)return;const a=b.dataset.a;if(a==="g+")S.goal=Math.min(7,S.goal+1);else if(a==="g-")S.goal=Math.max(1,S.goal-1);else if(a==="cmp")cmpOpen=!cmpOpen;else return;save();renderS()});
+function bkMsg(t){$("bkMsg").textContent=t}
+function exportText(){return JSON.stringify({app:"rankup",v:1,exported:new Date().toISOString(),data:S},null,1)}
+$("bkExp").onclick=()=>{
+  try{const b=new Blob([exportText()],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="rankup-backup-"+today()+".json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);bkMsg("Filen sparas i dina nedladdningar. Fungerar det inte, använd Kopiera som text.")}
+  catch(e){bkMsg("Kunde inte skapa filen. Använd Kopiera som text i stället.")}
+};
+$("bkCopy").onclick=async()=>{
+  const t=exportText();$("bkTxt").value=t;
+  try{await navigator.clipboard.writeText(t);bkMsg("Kopierat. Klistra in texten på den nya telefonen och tryck Importera.")}
+  catch(e){$("bkTxt").select();bkMsg("Markera texten ovan och kopiera den själv.")}
+};
+$("bkFile").onclick=()=>$("bkIn").click();
+$("bkIn").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{$("bkTxt").value=String(r.result);bkMsg("Filen är inläst. Tryck på Importera för att ersätta nuvarande data.")};r.readAsText(f);e.target.value=""};
+twoStep($("bkImp"),"Importera","Tryck igen för att ersätta nuvarande data",()=>{
+  let o;try{o=JSON.parse($("bkTxt").value)}catch(e){bkMsg("Texten är ingen giltig säkerhetskopia.");return}
+  const d=o&&o.data?o.data:o;
+  if(!d||typeof d!=="object"||!(Array.isArray(d.games)||Array.isArray(d.cur))){bkMsg("Det här ser inte ut som en kopia från RankUp.");return}
+  try{localStorage.setItem(KEY,JSON.stringify(d));location.reload()}catch(e){bkMsg("Kunde inte spara datan i webbläsaren.")}
+});
+const CFG_DEF={theme:"auto",accent:"blue",fs:1,font:"sport",snd:true,vib:true,wake:true,chips:14,streak:true};
+function cfg(k){return S.cfg&&S.cfg[k]!==undefined?S.cfg[k]:CFG_DEF[k]}
+const ACC={blue:["Blå","#1f5fe0","#4b86ff","#dbe7ff","#1b2c52"],green:["Grön","#12925a","#22b36b","#d6f3e3","#12382a"],purple:["Lila","#7a3fe0","#9560f5","#e8dcff","#2c1d52"],teal:["Turkos","#0b8a97","#18a9b8","#d3f1f4","#0f363a"],pink:["Rosa","#d6247f","#ec4a98","#ffdcec","#4a1530"]};
+function applyCfg(){
+  const r=document.documentElement,th=cfg("theme");
+  if(th==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",th);
+  const dark=th==="dark"||(th==="auto"&&typeof matchMedia==="function"&&matchMedia("(prefers-color-scheme: dark)").matches);
+  const a=ACC[cfg("accent")]||ACC.blue;
+  if(cfg("accent")==="blue"){r.style.removeProperty("--blue");r.style.removeProperty("--blue-soft")}
+  else{r.style.setProperty("--blue",dark?a[2]:a[1]);r.style.setProperty("--blue-soft",dark?a[4]:a[3])}
+  document.body.style.zoom=cfg("fs")===1?"":cfg("fs");
+  let st=document.getElementById("fontOv");
+  if(!st){st=document.createElement("style");st.id="fontOv";document.head.appendChild(st)}
+  st.textContent=cfg("font")==="simple"?'h1,.pct,.rec,.big,.tabs button,.clock,.stats b,.day b,.ring span,.col{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif!important}':"";
+  const mt=document.querySelector('meta[name="theme-color"]');
+  if(mt)mt.setAttribute("content",dark?"#0b1220":(cfg("accent")==="blue"?"#1f5fe0":a[1]));
+}
+try{if(typeof matchMedia==="function")matchMedia("(prefers-color-scheme: dark)").addEventListener("change",applyCfg)}catch(e){}
+let setPage="tema";
+const PAGES=[["tema","Tema"],["trn","Träning"],["mat","Matcher"],["bk","Säkerhetskopia"],["om","Om"]];
+function optRow(k,vals,cur){return '<div class="opt">'+vals.map(([v,l])=>'<button data-k="'+k+'" data-v="'+v+'" aria-pressed="'+(String(cur)===String(v))+'">'+l+'</button>').join("")+'</div>'}
+function tog(k,l,d){return '<label class="tg"><span><b>'+l+'</b>'+(d?'<br><span class="empty" style="font-size:13px">'+d+'</span>':"")+'</span><input type="checkbox" data-t="'+k+'"'+(cfg(k)?" checked":"")+'></label>'}
+function renderSet(){
+  $("setNav").innerHTML=PAGES.map(([id,l])=>'<button data-p="'+id+'" aria-pressed="'+(setPage===id)+'">'+l+'</button>').join("");
+  $("pgBackup").hidden=setPage!=="bk";$("setDyn").hidden=setPage==="bk";
+  let h="";
+  if(setPage==="tema"){
+    h='<section class="card"><h2>Utseende</h2><h3>Läge</h3>'+optRow("theme",[["auto","Auto (följer telefonen)"],["light","Ljust"],["dark","Mörkt"]],cfg("theme"))
+    +'<h3>Färg</h3><div class="opt">'+Object.keys(ACC).map(k=>'<button class="sw" data-k="accent" data-v="'+k+'" aria-label="'+ACC[k][0]+'" aria-pressed="'+(cfg("accent")===k)+'" style="background:'+ACC[k][1]+'"></button>').join("")+'</div>'
+    +'<h3>Textstorlek</h3>'+optRow("fs",[[0.92,"Liten"],[1,"Normal"],[1.12,"Stor"]],cfg("fs"))
+    +'<h3>Typsnitt för rubriker</h3>'+optRow("font",[["sport","Sportig"],["simple","Enkel"]],cfg("font"))+'</section>';
+  }else if(setPage==="trn"){
+    h='<section class="card"><h2>Träning</h2><h3>Veckomål (pass per vecka)</h3>'+optRow("goal",[1,2,3,4,5,6,7].map(x=>[x,x]),S.goal)
+    +'<h3>Standardlängd på pass</h3>'+optRow("tmode",[["long","Fullt pass"],["short","Kort pass"]],S.train.mode||"long")
+    +'<h3>Pass för</h3><div class="opt"><select class="in" data-sel="tview" aria-label="Pass för rank"><option value="auto">Min rank (automatiskt)</option>'+GN.map((n,i)=>'<option value="'+i+'"'+(String(S.train.view)===String(i)?" selected":"")+'>'+n+'</option>').join("")+'</select></div></section>'
+    +'<section class="card"><h2>Timer</h2>'+tog("snd","Ljud när tiden är slut")+tog("vib","Vibration","Fungerar inte på alla telefoner.")+tog("wake","Håll skärmen tänd medan timern går")+'</section>';
+  }else if(setPage==="mat"){
+    h='<section class="card"><h2>Matcher</h2><h3>Antal senaste matcher som visas</h3>'+optRow("chips",[[7,"7"],[14,"14"],[30,"30"]],cfg("chips"))+tog("streak","Visa vinst- och förlustsvit")
+    +'<p class="empty" style="font-size:14px;margin:12px 0 0">Veckan startar alltid på måndag och avslutas på söndag.</p></section>';
+  }else if(setPage==="om"){
+    const ds=[...S.games.map(x=>x.d),...S.train.log].sort();
+    h='<section class="card"><h2>Om RankUp</h2><p style="margin:0 0 8px">Version 1.0</p><p class="empty" style="margin:0 0 8px">'+(ds.length?"Du har loggat "+S.games.length+" matcher och "+S.train.log.length+" träningspass. Första loggen gjordes "+fmt(ds[0]):"Inget loggat ännu.")+'</p><p class="empty" style="margin:0">All data sparas bara i den här webbläsaren. Gör en säkerhetskopia ofta, särskilt innan du byter telefon.</p></section>';
+  }
+  $("setDyn").innerHTML=h;
+}
+$("vSet").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-p],button[data-k]");if(!b)return;
+  if(b.dataset.p){setPage=b.dataset.p;renderSet();return}
+  const k=b.dataset.k,v=b.dataset.v;
+  if(k==="goal")S.goal=+v;else if(k==="tmode")S.train.mode=v;else if(k==="chips"||k==="fs")S.cfg[k]=+v;else S.cfg[k]=v;
+  save();applyCfg();renderSet();render();
+});
+$("vSet").addEventListener("change",e=>{
+  const t=e.target;
+  if(t.dataset.t){S.cfg[t.dataset.t]=t.checked;save();render()}
+  else if(t.dataset.sel==="tview"){S.train.view=t.value;save()}
+});
+const QZ=[
+[["Hur mycket boost har en bil när en kickoff börjar?",["En tredjedel av tanken, alltså 33 av 100","Full tank vid varje kickoff (100)","Ingen boost alls förrän man tar en pad (0)","Hälften av tanken men bara på första kickoffen (50)"],"Alla börjar med 33 boost, så pads på vägen till bollen är viktiga."],
+["Ungefär hur lång tid tar det innan en tagen stor boostpad fylls på igen?",["Ungefär 10 sekunder, mycket längre än små pads","Ungefär 4 sekunder, lika snabbt som små pads","Ungefär 30 sekunder, så de används sällan","Först efter nästa mål i matchen"],"Stora pads tar cirka 10 sekunder och små pads cirka 4 sekunder."],
+["Motståndaren dribblar mot dig och du är sista man. Vad är oftast bäst?",["Backa mot målet och håll dig mellan bollen och nätet","Hoppa direkt mot bollen med all boost för att ta den först","Åka tillbaka till mittlinjen för att ta boost medan de skjuter","Stanna helt still vid ena stolpen och vänta på skottet"],"Rusar du in kan de skjuta förbi dig, så ta tid och håll dig i skottlinjen."],
+["Vad är skillnaden mellan ball cam och car cam?",["Ball cam siktar mot bollen och car cam följer bilens riktning","Ball cam ger mer boost och car cam ger snabbare svängar","Car cam siktar mot bollen och ball cam följer bilens riktning","Ball cam används bara i frispel och car cam bara i ranked"],"Med ball cam ser du alltid bollen, men du ser mindre av hur bilen pekar."],
+["Varför är det riskabelt att hoppa mot bollen för tidigt?",["Du kan inte justera din bana och bollen passerar under dig","Du förlorar all boost direkt när du lämnar marken i hoppet","Kameran växlar automatiskt till car cam så du tappar bollen","Du blir automatiskt demolerad av motståndaren i luften"],"Du har bara ett hopp kvar att justera med, så timingen är viktig."],
+["Vad innebär det att täcka målet som sista man?",["Att hålla dig mellan bollen och målet så skott måste passera dig","Att stå på själva mållinjen hela tiden oavsett var bollen är","Att ta alla boostpads på din planhalva innan bollen kommer","Att gå på bollen så fort motståndaren rör den för att pressa"],"Du är lagets sista säkring, så position går före att jaga bollen."]],
+[["Du hoppar och försöker flippa först efter 2 sekunder utan att landa. Vad händer?",["Ingenting, fönstret på cirka 1,5 sekunder har gått ut","Du flippar som vanligt eftersom tiden för andra hoppet är obegränsad","Bilen får ett extra hopp som belöning för att du väntade länge","Du flippar men utan någon fartökning efter 2 sekunder"],"Efter ungefär 1,5 sekunder förlorar du andra hoppet tills du landar."],
+["Vilken beskrivning passar bäst på en 50/50?",["Båda når bollen samtidigt och ingen styr vart den går","Ett skott där bollen är precis lika långt från båda målen","En passning som delas lika mellan två lagkamrater i samma lag","En kickoff där båda lagen har exakt lika mycket boost"],"Det vanligaste misstaget är att gå in halvhjärtat och förlora utan att få något."],
+["Du har 8 boost och bollen är långt bort på motståndarens sida. Vad är smartast?",["Plocka små pads på vägen tillbaka mot mitten","Åka rakt mot bollen och hoppas på ett misstag av motståndaren","Stanna kvar och spara de 8 boosten till ett eventuellt skott","Åka mot deras mål och vänta på att få en passning"],"Du behöver boost innan bollen kommer tillbaka till din sida."],
+["Vad är huvudsyftet med att landa på alla hjul efter en aerial?",["Att kunna accelerera och svänga direkt utan att tappa tempo","Att få tillbaka den boost som du använde i luften","Att aktivera ett nytt hopp som annars bara går på väggen","Att nollställa motståndarens senaste touch på bollen"],"Landar du på taket tappar du ofta flera sekunder."],
+["Vad blir följden av att jaga bollen hela tiden i stället för att hålla position?",["Du lämnar målet öppet och blir lätt att spela förbi","Du får mer boost eftersom du alltid är nära bollen och pads","Du blir svårare att demolisha eftersom du rör dig mer","Du förbättrar rotationen eftersom du alltid är först på bollen"],"Position slår fart, för bollen kommer ofta tillbaka förbi dig."],
+["När är en clear mot sidan bättre än en clear rakt framåt?",["När rakt framåt kan ge motståndaren en lätt boll i mitten","När du vill att bollen ska studsa tillbaka mot ditt eget mål","När motståndaren har mer boost än du i just den situationen","När du vill hinna ta en ny kickoff snabbare efter målet"],"Mitten framför målet är farligast, så sidan ger dig tid att återhämta dig."]],
+[["Vad skiljer shadow defense från att utmana direkt?",["Du matchar farten på avstånd så du kan reagera på skottet","Du åker rakt mot bollen men hoppar sent för att hinna före","Du lämnar anfallaren och täcker i stället den närmaste boostpaden","Du demolisher anfallaren i stället för att försöka nå bollen"],"Du köper tid och tvingar fram ett svagt skott i stället för att gissa."],
+["Varför är en half-flip ofta bättre än att svänga i en cirkel när du ska tillbaka?",["Du vänder snabbt och behåller fart så du kommer tillbaka tidigare","Den ger dig automatiskt full boost vid landningen efter vändningen","Den gör att du kan demolisha på vägen tillbaka mot målet","Den ger ett extra hopp som bara fungerar när du försvarar"],"Half-flip vänder bilen på nästan ingen yta och ger tempo direkt."],
+["Vad är den viktigaste detaljen i en speedflip på kickoff?",["Att flippen avbryts så bilen behåller farten rakt framåt","Att du stänger av boosten under hela flippen för att spara den","Att du hoppar så sent som möjligt för att nå bollen sist","Att du alltid träffar bollen med taket för att få mer kraft"],"Flip cancel gör att du inte tappar fart i rotationen."],
+["Bollen ligger i ett hörn. Varför är det ofta bättre att läsa hörnet än att gå in direkt?",["Bollen kommer ofta ut i en förutsägbar vinkel så position vinner","Bollen fastnar ofta längs väggen så att det räcker att komma först","Du kan inte träffa bollen rent i ett hörn utan en flip reset","Motståndaren har alltid bättre vinkel mot målet från hörnet"],"Du vill vara på rätt plats när bollen släpper, inte först vid väggen."],
+["Vad krävs för att du ska kunna demolisha en motståndare?",["Att du är supersonic när du träffar deras bil","Att du har full boost och hoppar rakt in i bilen","Att du träffar bilen underifrån med taket för att välta den","Att din bil har bollen i kontakt vid samma tillfälle"],"En demolerad bil respawnar efter ungefär 3 sekunder och har då 33 boost."],
+["Ungefär hur mycket boost förbrukar du per sekund när du håller inne boost?",["Ungefär en tredjedel av tanken (33)","Ungefär en femtedel av tanken per sekund (20)","Ungefär hälften av tanken per sekund (50)","Ungefär en tiondel av tanken per sekund (10)"],"Hela tanken räcker alltså cirka tre sekunder av sammanhängande boostande."]],
+[["Din lagkamrat tar en offensiv touch från sidan och du är andra man. Var bör du vara?",["Bakom bollen på motsatt sida, redo för retur eller stöd","Rakt framför lagkamraten så att ni kan passa direkt framåt","Vid mittlinjen redo för en lång boll oavsett var bollen är","Direkt bredvid lagkamraten för att ta bollen om den missas"],"Du ska täcka returen, inte dubbla den första touchen."],
+["Vad är en backboard read och när är den viktigast?",["Att förutse bollens studs från väggen ovanför målet vid höga skott","Att bedöma hur långt bollen studsar på golvet efter en låg passning","Att avgöra vilken sida motståndarens kickoff-bil kommer ifrån","Att uppskatta när en demolerad bil respawnar bakom dig"],"Höga skott kommer ofta ner i en förutsägbar vinkel efter väggen."],
+["Vad gör en wavedash och när uppstår effekten?",["Du flippar precis innan landning och får en kort fartökning","Du handbromsar precis innan landning och tappar all fart direkt","Du boostar rakt ned i golvet så att bilen studsar tillbaka upp","Du flippar direkt efter avhopp så att bilen roterar ett helt varv"],"Tajmingen precis före landning är det som ger farten."],
+["Hur skiljer sig en fast aerial från en vanlig aerial?",["Du hoppar, boostar och använder andra hoppet tidigt för mer fart","Du undviker boost och använder bara flip för att nå bollen","Du väntar tills du är på väggen innan du hoppar mot bollen","Du håller bilen plan med air roll utan att luta nosen uppåt"],"Du kommer upp till bollen snabbare och har bättre tid att justera."],
+["Vad är syftet med air roll när du närmar dig bollen i luften?",["Att vrida bilen runt nosen så du får rätt vinkel på träffen","Att få extra hopp varje gång hjulen lämnar marken i luften","Att öka bilens hastighet i luften utan att behöva använda boost","Att nollställa bilens rotation helt när du ska landa"],"Air roll hjälper dig att möta bollen med rätt del av bilen."],
+["Hur kan du använda en redirect för att skapa ett farligt skott?",["Du träffar bollen med liten vinkel så att den byter riktning","Du stoppar bollen helt och dribblar den sedan mot målet","Du slår bollen rakt upp i luften för att få mer tid","Du passar bollen bakåt till en lagkamrat för att vinna tid"],"Du använder bollens egen fart i stället för att skapa ny."]],
+[["Du är sista man med bra boost och anfallaren dribblar mot dig. Vad är oftast bäst?",["Skugga med jämn fart och utmana när anfallaren tappar kontrollen","Rusa in direkt innan de hinner förbereda en flick mot dig","Backa ända in i målet och vänta på skottet från dem","Möta dem vid mittlinjen för att stoppa dribblingen så tidigt som möjligt"],"Skugga ger dig tid, och misstaget kommer ofta från anfallaren."],
+["Vad är en pinch och varför är den svår att försvara?",["Bollen klämms mot vägg eller golv och skjuts iväg snabbt","Bollen träffas med taket och rullar långsamt längs marken","Bollen studsar två gånger på samma sida utan att nå målet","Bollen träffas av två bilar samtidigt och går rakt upp"],"Försvararen hinner sällan läsa vinkeln och farten blir hög."],
+["Vad avgör oftast om det är rätt att gå på en 50/50 i försvar?",["Om du kan vinna eller neutralisera den utan att öppna målet","Om motståndaren har mindre boost än du, oavsett din position","Om bollen är på din planhalva, oavsett vem som är närmast","Om du själv förlorade den förra 50/50 och vill ta igen det"],"Frågan är vad som händer om du förlorar den."],
+["Varför är ett halvhjärtat försök i en 50/50 ofta sämre än att backa av?",["Du ger bort bollen utan vinst, medan backning ger position","Det ger motståndaren automatiskt en demo i samma sekund","Det gör att du förlorar all boost som du har kvar i tanken","Backning ger alltid bollen direkt till din lagkamrat"],"Gå in fullt eller backa av, aldrig mittemellan."],
+["Vilken boosthantering ger mest stabilitet över en hel match?",["Ta små pads på vägen och spara tillräckligt för att försvara","Ta alltid stora pads oavsett var bollen är på planen","Använd boost hela tiden för att alltid ligga först på bollen","Spara all boost till kickoffs och till själva skotten"],"Boost du slösar syns när du behöver försvara."],
+["Din lagkamrat tappar bollen i anfallet och du är nära motståndarens mål. Vad är oftast bäst?",["Rotera tillbaka via sidan och ta boost för att täcka bakom","Stanna kvar vid motståndarens mål och vänta på nästa boll","Åka rakt över mitten mot egna målet utan att ta boost","Gå på bollen igen för att vinna tillbaka den direkt"],"Rotation är vad som håller försvaret stängt."]],
+[["Vad krävs för ett double tap i luften?",["Första touchen mot väggen ovanför målet och en andra på studsen","Två snabba touches i mitten följda av ett lågt skott längs marken","Ett pass mot väggen som du låter motståndaren ta först","Dribbling på taket tills bollen studsar upp av sig själv"],"Ett double tap kräver både bra första touch och bra timing på studsen."],
+["Vad krävs för en flip reset?",["Att alla fyra hjul nuddar bollen i luften och ger dig din flip","Att taket nuddar bollen samtidigt som du boostar uppåt i luften","Att du landar inom 1,5 sekunder efter ditt första hopp","Att du träffar bollen med nosen precis i samma stund som du flippar"],"Då kan du flippa igen i luften och ändra riktning."],
+["Vad är mest avgörande i en air dribble?",["Första touchen som skickar bollen upp med rätt fart","Att boosta så mycket som möjligt direkt efter första touchen","Att slå bollen så hårt som möjligt mot taket för höjd","Att hoppa så sent som möjligt efter den första touchen"],"Det är första touchen som avgör hur stabila de följande blir."],
+["Hur använder man en fake i försvar?",["Du låtsas gå in men backar, så anfallaren committar","Du går på bollen men skjuter den bakåt mot eget mål","Du stannar helt still och låter anfallaren passera förbi dig","Du demolisher anfallaren så att bollen studsar åt fel håll"],"Anfallaren går ur position när de tror att du går in."],
+["Vad är viktigast att leta efter när du granskar en replay efter en förlust?",["Beslut som ledde till mål: position, boost och timing","Vilka av dina touches i luften som såg snyggast ut på replayen","Hur många gånger du hann boosta i varje enskilt anfall under matchen","Vilken kamerainställning som motståndarna använde i matchen"],"De flesta mål bottnar i beslut och inte i mekanik."],
+["Vad är en ceiling shot och hur fungerar den?",["Du kör upp på taket och hoppar ner mot bollen för ny vinkel","Du skjuter bollen mot taket så den studsar tillbaka mot målet","Du hoppar upp till taket för att försvara mot ett lågt skott","Du kör på taket för att ladda boost snabbare än vid pads"],"Vinkeln och farten från taket gör den svår att läsa."]],
+[["Vilken hastighet gör att en bil blir supersonic?",["Ungefär 2200 enheter per sekund, strax under maxfarten","Ungefär 1410 enheter per sekund, maxfart utan boost","Ungefär 2300 enheter per sekund, maxfart med boost","Ungefär 1800 enheter per sekund, när efterbilder visas"],"1410 är maxfart utan boost och 2300 är maxfart med boost, så supersonic ligger precis under maxfarten."],
+["Hur hjälper aerial car control dig att få en ren träff i luften?",["Du styr bilens vinklar med små rörelser så rätt del möter bollen","Du låser kameran mot bollen så bilen styr rätt av sig själv","Du håller boost nedtryckt så bilen alltid siktar mot bollen","Du undviker air roll så bilen behåller vinkeln från hoppet"],"Små justeringar ger mer jämna träffar än stora."],
+["Vad är syftet med en bump i stället för en demo?",["Att störa motståndarens bana och tempo utan att kräva supersonic","Att få motståndarens bil att respawna längre bort från målet","Att fylla din egen boost via kontakten med motståndaren","Att tvinga motståndaren att tappa sin flip i luften"],"En bump kan ändra spelet utan att kosta dig position."],
+["Vad är en delay flick och varför fungerar den?",["Du håller bollen och flickar sent så försvararen committar","Du slår bollen direkt men boostar efteråt för att få mer kraft","Du hoppar mot bollen men flippar i motsatt riktning mot målet","Du släpper bollen och tar den igen vid väggen efter en studs"],"Försvararen går in för tidigt och du har redan bestämt dig."],
+["Varför är jämn mekanik ofta viktigare än avancerade moves på hög nivå?",["Varje missad touch ger motståndaren en chans som de utnyttjar","Avancerade moves går inte att använda när bollen studsar oförutsägbart","Spelet ger ingen fördel för moves som tar längre tid att utföra","Avancerade moves kräver mer boost än vad som finns på planen"],"Matcher vinns oftast av den som gör färre misstag."],
+["Vad menas med att stå back post i försvar?",["Att ligga vid bortre stolpen från bollen och täcka returen","Att ligga vid närmaste stolpen så att du blockerar skottet direkt","Att ligga mitt i målet så du täcker båda stolparna lika","Att ligga vid mittlinjen för att kunna starta en snabb kontring"],"Då täcker du det som de flesta missar."]],
+[["Vad är syftet med en flip cancel i en half-flip eller speedflip?",["Att avbryta rotationen efter flippen så bilen behåller fart","Att ge bilen ett extra hopp efter landningen på marken","Att nollställa boosten så att nästa flip blir starkare","Att tvinga bilen att landa på taket för mer stabilitet"],"Utan cancel snurrar bilen och tappar fart."],
+["Vad är en stall och vad används den till?",["Att hålla sig kvar i luften med dodge och air roll för timing","Att stanna bilen på marken med handbroms precis före ett skott","Att boosta rakt upp mot taket för att kunna nå bollen först","Att landa på väggen och vänta in nästa studs från bollen"],"Du ändrar rytmen i luften för att lura motståndaren."],
+["Vad skiljer game sense från ren mekanik?",["Att förutse spelet och vara på rätt plats i rätt tid","Att utföra svåra moves utan att behöva tänka på dem","Att ha snabbare reaktionstid än motståndaren i varje läge","Att välja den kamerainställning som passar spelstilen bäst"],"Mekanik får dig till bollen och game sense avgör var du ska vara."],
+["Vad innebär det att cheata en kickoff i 2v2 och varför görs det?",["Du tar inte hela kickoffen utan ligger lite bakom för att täcka","Du kör kickoffen med full boost för att inte tappa tempo mot dem","Du går mot sidan och tar en stor boostpad före själva bollen","Du låter motståndaren ta bollen så att du kan demolisha dem"],"Det ger säkerhet utan att ge upp all press."],
+["Vad menas med tempo och hur påverkas det av boost?",["Hur snabbt spelet går, och boost ger ofta kontroll över takten","Hur länge bollen är i luften, och mer boost gör den långsammare","Hur många touches laget gör, och boost påverkar inte detta","Hur ofta en demo sker, och mer boost gör demos svagare"],"Den som har boost och boll bestämmer oftast takten."],
+["Varför värmer toppspelare upp med mekanikpack före ranked?",["För att få muskelminnet skarpt och se vad som sitter dåligt idag","För att nollställa rank-förluster från matcherna dagen innan","För att få extra boost vid första kickoffen i matchen","För att slippa spela kickoffs under de rankade matcherna"],"Jämnhet kommer från repetition."]]
+];
+const GN2=[[["Hur mycket boost ger en liten boostpad?",["12 boost, ungefär en åttondel av tanken","25 boost, ungefär en fjärdedel av tanken","50 boost, ungefär hälften av tanken","100 boost, ungefär en hel tank"],"Små pads ger 12 boost och fylls på efter cirka 4 sekunder."],["Vad händer om matchen är oavgjord när tiden är slut?",["Förlängning där första målet avgör matchen","Matchen slutar oavgjord och ingen vinner","En ny omgång på två minuter spelas","Straffar avgör efter en kort paus"],"I ranked spelas förlängning tills någon gör mål."],["Vad ger en högre FOV i kamerainställningarna?",["Du ser mer av planen men allt ser mindre ut","Du ser mindre av planen men allt ser större ut","Bilen får högre fart men sämre sväng","Bollen rör sig långsammare i din kamera"],"Många spelare väljer hög FOV för bättre överblick."],["Vad skiljer en flip från ett vanligt hopp?",["Flippen är ett andra hopp som ger fart","Flippen är ett högre hopp som kräver boost","Flippen går bara att göra när du står på väggen","Flippen gör att du alltid landar på taket"],"Flippen använder ditt andra hopp."],["Vad är ett självmål?",["Ett mål i det egna nätet efter en egen touch","Ett mål som görs direkt från kickoff","Ett mål som annulleras på grund av en demo","Ett mål som görs med bollen i luften"],"Självmål händer ofta när man slår bollen i panik."],["Hur lång är en vanlig rankad match?",["Fem minuter plus eventuell förlängning","Tio minuter utan någon förlängning alls","Tre minuter med straffar vid oavgjort","Tills det första laget har tio mål"],"Fem minuter, och vid oavgjort spelas förlängning."],["Vad är ett bra sätt att öva bollkontroll i frispel?",["Slå bollen mot väggen och ta emot den mjukt","Boosta rakt in i bollen så hårt det bara går","Hoppa mot bollen med full boost varje gång","Stanna helt still och vänta på att bollen kommer"],"Mjuk första touch är grunden för kontroll."],["När är powerslide mest användbart?",["I skarpa svängar för att behålla farten","På raksträcka för att få extra fart","När du ska hoppa mot en boll i luften","När du ska ta en stor boostpad"],"Powerslide ger tajta svängar utan stor fartförlust."],["Hur ser du hur mycket boost du har kvar?",["På boostmätaren nere i hörnet av skärmen","Bilens färg ändras när boosten är låg","Bollen byter färg när du har mycket boost","Kameran skakar när boosten börjar ta slut"],"Håll koll på mätaren innan du går på bollen."]],[["Bollen är för långt bort för att nå i luften. Vad är oftast bäst?",["Landa rent och ta position i stället för att jaga","Boosta ända fram och hoppas att bollen studsar rätt","Flippa direkt för att få extra räckvidd mot bollen","Åka upp på väggen och vänta på nästa touch"],"En missad aerial kostar ofta mer än att avstå."],["Hur styr du bollens riktning vid en touch?",["Bollen skjuts bort från träffpunkten, så vinkeln avgör riktningen","Bollen går alltid rakt mot målet oavsett var du träffar","Bollen följer alltid bilens färdriktning vid kontakt","Bollen studsar alltid tillbaka mot din bil efter träffen"],"Träffa rätt punkt på bollen för att styra den."],["När bör du boosta på väg mot bollen?",["När du behöver fart för att komma först","Alltid så mycket som möjligt för att vara säker","Aldrig när bollen är på din planhalva","Bara i luften och aldrig på marken"],"Onödig boost kostar dig när du ska försvara."],["Hur läser du en boll som studsar mot ditt försvar?",["Följ studsen och placera dig vid den sista studsen","Stå kvar vid mållinjen utan att röra dig","Åk rakt mot första studsen så snabbt som möjligt","Hoppa direkt när bollen kommer över mittlinjen"],"Det är den sista studsen som avgör var bollen hamnar."],["Vad kännetecknar en bra första touch i försvar?",["Den flyttar bollen bort från målet utan att ge bort den","Den skickar bollen rakt upp så högt som möjligt","Den stoppar bollen helt för att dribbla framåt","Den går alltid rakt mot motståndarens mål"],"Säkerhet först, sedan tempo."],["När är det bäst att ta en stor boostpad?",["När du har lite boost och en lugn stund i spelet","När du redan har nästan full tank på planen","När bollen är precis framför dig i målet","Bara direkt efter varje mål som görs"],"Stora pads ger 100 boost och fylls på efter cirka 10 sekunder."],["Hur bör du möta en boll som rullar långsamt mot ditt mål?",["Med kontroll och slå bort den mot sidan","Genom att hoppa över den och hoppas på bästa","Genom att stå still och låta den träffa dig","Genom att boosta rakt in för maximal kraft"],"Kontroll och säker riktning är viktigare än kraft."],["Vad kan en kort väntan före en aerial ge dig?",["Bättre timing och chans att läsa studsen","Mer boost i tanken när du lämnar marken","Ett extra hopp i luften när du väntat tillräckligt","Automatisk träff på bollen om du väntar länge"],"Att gå upp för tidigt är ett vanligt misstag."],["Hur minskar du risken att missa en aerial?",["Gå upp i god tid och justera med air roll","Hoppa så sent som möjligt och boosta maximalt","Undvik att titta på bollen under hela flygningen","Använd flip direkt när du lämnar marken"],"God timing och små justeringar ger träff."]],[["Vad skiljer en rensning från ett skott?",["En rensning prioriterar att ta bort faran","En rensning prioriterar att göra mål från långt håll","En rensning sker bara från motståndarens halva","En rensning kräver alltid boost och en flip"],"Rensningens mål är att ta bort faran."],["Varför bör du undvika att slå bollen rakt framför ditt eget mål?",["Motståndaren kan få en fri retur nära målet","Bollen går alltid rakt in i det egna målet","Kameran tappar bollen i den vinkeln","Bollen blir långsammare mot dig"],"Mitten framför målet är farligast."],["Hur kan du bäst använda väggar i försvar?",["Spela bollen längs väggen bort från mitten så du får tid","Spela bollen rakt in i väggen så att den studsar tillbaka","Undvik väggarna helt eftersom de ger motståndaren fördelar","Använd väggen bara när motståndaren har mer boost"],"Väggen ger dig en säker utväg."],["Vad menas med att du committar i en situation?",["Att du går in så fullt att du inte kan backa av","Att du stannar och väntar på motståndarens drag","Att du ber om hjälp i en annan del av spelet","Att du byter kamera mitt i en situation"],"Committar du för tidigt kan motståndaren straffa dig."],["Vad är nackdelen med att boosta full fart hela vägen tillbaka i försvar?",["Du kan få för lite boost kvar när du behöver försvara","Du blir långsammare eftersom boost dämpar farten","Bilen tappar greppet och snurrar runt hela tiden","Du kan inte ta några pads på vägen tillbaka"],"Planera boosten så att du har lite kvar."],["Hur ser en bra recovery ut efter en missad aerial?",["Landa på hjulen och ta snabbt tillbaka position","Boosta tills du hittar bollen igen i luften","Stanna helt still och vänta på nästa kickoff","Gå på väggen så länge du kan för att vinna tid"],"Position först, sedan nästa försök."],["Varför läser man motståndarens bilriktning och hastighet?",["För att förutse vart de ska slå bollen","För att se exakt hur mycket boost de har kvar","För att veta var nästa pad fylls på","För att räkna ut hur länge de kan flyga"],"Du är redo en sekund tidigare."],["När är en demo oftast mest värdefull?",["När den tar bort en försvarare vid ett farligt anfall","När du är i ditt eget försvar och har ont om tid","När bollen är långt borta från båda målen","Direkt efter varje kickoff för att få mer boost"],"Demon är bäst när den skapar ett läge."],["Hur påverkar bilens fart hur svår en boll är att träffa rent?",["Hög fart gör timingen svårare","Hög fart gör alltid träffen enklare","Fart påverkar inte träffen särskilt mycket","Låg fart ger alltid bättre vinkel på träffen"],"Kontroll går före fart när bollen är svår."]],[["Vad är en rebound och varför är den viktig?",["En retur efter ett skott som ger en ny chans","Ett skott som träffar taket och går direkt i mål","En passning som studsar två gånger i rad","En studs som alltid går till motståndaren"],"Returen ger ofta ett lättare läge än själva skottet."],["Hur kan du skapa en bättre vinkel för ett skott från sidan?",["Ta bollen mot mitten och skjut därifrån","Skjut hårdast möjligt rakt mot stolpen","Hoppa över bollen och flippa tillbaka","Vänta tills bollen rullar ut ur planen"],"Vinkeln avgör ofta mer än kraften."],["Vad är en bra regel för att välja mellan aerial och marken?",["Gå upp om du har kontroll och skydd bakom dig","Gå alltid upp eftersom luften är snabbare","Stanna alltid på marken eftersom flygande är riskabelt","Gå upp bara om motståndaren har mindre boost"],"Aerials är bäst när riskerna är små."],["Vad är största risken med en aerial utan skydd bakom dig?",["Du blir en fast punkt som kan spelas förbi","Du får för mycket boost för att hinna landa","Bilen blir långsammare i luften av vinkeln","Bollen flyger alltid över målet"],"I luften kan du inte ändra riktning snabbt."],["Vad innebär det att vinna en 50/50 smart snarare än starkt?",["Att neutralisera bollen och behålla position","Att alltid slå så hårt som möjligt","Att alltid följa efter bollen efteråt","Att undvika varje 50/50 hela matchen"],"Position är ofta viktigare än kraft."],["Hur kan du lära dig motståndarens vanor under en match?",["Notera hur de reagerar flera gånger","Gissa vilken pad de tar nästa gång","Titta enbart på deras bilmodell","Kopiera deras kamerainställning"],"Vanor går att utnyttja."],["Vad menas med att kontrollera en boll i luften?",["Att ta emot den mjukt så den följer med","Att slå bort den så hårt som möjligt","Att stoppa den helt innan du landar","Att passera den utan att röra den"],"Mjuka touches ger dig fler alternativ."],["Varför spelar bollens studsar mot tak och väggar roll för din position?",["Du kan förutse var bollen hamnar","Den ger dig mer boost när du är nära","Den gör bollen tyngre mot dig","Den ger motståndaren fler pads att ta"],"Läs studsarna innan bollen kommer."],["Hur håller du ett jämnt tempo under en lång match?",["Genom att välja säkra touches och undvika onödiga risker","Genom att alltid sikta på avancerade moves","Genom att aldrig använda boost efter första halvan","Genom att byta kamerainställning varje gång"],"Jämnhet vinner långa matcher."]],[["Hur kan du använda en väggstuds för att slå en försvarare?",["Spela bollen mot väggen och möt den bakom dem","Skjut bollen rakt mot försvararens bil","Stanna och vänta på att försvararen byter sida","Boosta in i bollen så hårt som möjligt"],"Väggen ger dig en vinkel de inte hinner täcka."],["Vad händer ofta om du flippar när du är för nära bollen?",["Du träffar den för tidigt och tappar riktning","Du får automatiskt full boost i tanken direkt","Bollen studsar alltid över bilens tak i luften","Du landar alltid på taket efter varje flip"],"Timing och avstånd avgör flippen."],["Hur minskar du risken för en snabb kontring?",["Ha boost och position före varje risk","Gå alltid på bollen utan att tänka på läget","Stå still tills motståndaren passerat mitten","Använd flip så mycket som möjligt"],"Risk du tar ska vara kontrollerad."],["Varför är en kontrollerad dribbel ofta bättre än ett tidigt skott mot en stängd målsida?",["Du kan vänta tills målet öppnas innan du avgör","Dribbling ger alltid fler poäng än skott","Bollen väger mindre när du dribblar","Skott går aldrig igenom en stängd målsida"],"Tålamod skapar öppningar."],["Vad är ett tecken på att du borde backa av en boll?",["Du har lite boost och motståndaren är närmare","Du har full boost och bollen är långt borta","Motståndaren står stilla mitt i målet","Bollen ligger i luften nära taket"],"Backa av när chansen att vinna är liten."],["Hur bäst nyttja en boll som studsar upp efter ett skott?",["Läs studsen och kom i läge för en retur","Åk förbi bollen och vänta på nästa kickoff","Skjut direkt utan att titta var bollen är","Stanna vid mållinjen och vänta"],"Returer ger ofta fria chanser."],["Vad menas med att tvinga en försvarare att välja?",["Att skapa ett läge där de förlorar oavsett","Att demolisha försvararen så fort det går","Att ta bort all deras boost med en demo","Att stå still tills de gör något av sig själva"],"Du pressar dem till att välja det minst dåliga."],["Varför är hög hastighet i en aerial inte alltid bättre?",["Du hinner inte justera vinkeln i tid","Fart ger sämre touch mot väggar","Mer fart tar bort ditt andra hopp","Fart ger mindre boost vid landning"],"Kontroll slår fart i luften."],["Hur övar du väggspel bäst?",["Spela bollen längs väggen och möt den mjukt","Slå bollen så hårt som möjligt mot väggen","Undvik väggarna helt i träningen","Kör bara på taket tills bollen faller ner"],"Kontroll på väggen ger dig fler alternativ."]],[["Varför är en flip reset riskfylld i ett försvarsläge?",["En miss ger motståndaren en fri boll","Den ger motståndaren extra boost","Den förstör bilens balans permanent","Den kräver att du är supersonic"],"Svåra moves passar när du har skydd."],["Hur förbättrar du konsekvens i luftspel?",["Öva samma träff många gånger med små variationer","Försöka nya moves varje gång du övar","Öva bara när du är trött för att tvinga fram kontroll","Hoppa över uppvärmningen för att spara tid"],"Repetition bygger jämnhet."],["Vad är ett tecken på att du committar för tidigt i en 50/50?",["Motståndaren ser rörelsen och går runt dig","Du får extra boost vid kollisionen","Bollen går alltid över dig","Du får automatiskt en demo på motståndaren"],"Timing är allt i en 50/50."],["När är ett lågt hopp bättre än en aerial?",["När bollen är lågt och du vill ha kontroll","När bollen ligger i taket och du vill ha kraft","När du vill tvinga fram en demo","När du vill undvika all rotation i luften"],"Det räcker ofta med ett litet hopp."],["Vad är en rimlig förväntan på mekanikträning?",["Små framsteg över tid genom repetition och feedback","Att nya moves sitter perfekt efter ett pass","Att mekanik ersätter all spelförståelse","Att alla moves fungerar i alla lägen direkt"],"Tålamod ger resultat."],["Vad gör du efter en miss i en komplicerad mekanik?",["Återtar position innan nästa försök","Försöker direkt igen utan att ta position","Byter kamerainställning mitt i spelet","Ger upp mekaniken resten av matchen"],"Missar får inte kosta ett mål till."],["Hur kan du använda bollens fart för ett tidigare skott?",["Möta bollen så att dess fart hjälper skottet","Stoppa bollen helt först för att skjuta kontrollerat","Alltid slå in den i väggen innan skott","Boosta rakt in för att byta riktning"],"Bollens fart är en gratis resurs."],["Varför är kontakten viktigare än kraft vid en pinch?",["Klämman ger farten, träffpunkten avgör","Kraften avgör alltid hur snabbt bollen går","Pinch fungerar bara med full boost","Pinch fungerar bara på taket"],"Träffpunkten är nyckeln."],["Hur känner du igen att du spelar för förutsägbart?",["Motståndaren verkar veta vad du gör härnäst","Du gör fler mål än tidigare i varje match","Du tar fler stora pads än motståndaren per match","Bollen följer alltid din kamerariktning"],"Variation gör dig svårare att läsa."]],[["Vad kännetecknar ett konsekvent ställningsspel?",["Du är sällan ur position efter en miss","Du går alltid på bollen först i varje situation","Du undviker alla 50/50 hela matchen","Du använder bara en typ av skott"],"Position är grunden för jämnhet."],["Hur minskar du effekten av en dålig touch i ett anfall?",["Återta position och läs vad de gör","Försök samma touch en gång till direkt","Hoppa upp och vänta på studsen i luften","Åk mot sidan och stanna där"],"Missar får inte bli mål."],["Varför är det värdefullt att träna på obekväma vinklar?",["Matcher ger sällan perfekta lägen","Bollen studsar bara från obekväma vinklar","Obekväma vinklar ger mer boost","Det gör att motståndaren inte kan demolisha dig"],"Träning ska likna verkligheten."],["Vad menas med att spela lugnt under press?",["Att välja säkra beslut under press","Att aldrig röra sig fort","Att alltid vänta tills bollen stannar","Att bara försvara hela matchen"],"Lugn ger färre misstag."],["Hur läser du en fake från en motståndare?",["Titta på deras fart och riktning","Titta på vilken färg deras bil har","Räkna hur många gånger de hoppar","Följ deras kameravinkel i replayn"],"Fart avslöjar mer än rörelse."],["Vad är ett tecken på att du överanvänder en mekanik?",["Motståndarna förutser den och straffar","Du får fler mål med den än med andra touches","Den tar mindre boost än andra moves","Den fungerar bara på taket"],"Variation är nödvändig."],["Hur kan en replay avslöja konsekvensproblem?",["Genom att visa mönster i hur dina misstag uppstår","Genom att räkna hur många gånger du boostade","Genom att jämföra dig med en proffsbil","Genom att visa matchen i dubbel fart"],"Mönster syns bara över flera situationer."],["Hur påverkar bollens höjd valet mellan flip och aerial?",["Höga bollar kräver ofta aerial","Hög boll tas alltid med flip","Låg boll kräver alltid aerial","Höjden påverkar inte valet alls"],"Välj det enklaste sättet att nå bollen."],["Vad kan en kort paus efter ett insläppt mål göra?",["Hjälpa dig återställa fokus","Ge dig extra boost vid nästa kickoff","Ge motståndaren fler pads","Förlänga matchens klocka"],"Lugn mellan mål minskar tilt."]],[["Vad visar hög spelförståelse under en kickoff?",["Du anpassar dig efter vad de sannolikt gör","Du boostar alltid maximalt oavsett läge","Du tittar bort från bollen första sekunden","Du hoppar alltid så sent som möjligt"],"Förutsägbarhet är en svaghet."],["Hur använder du tempo som ett vapen?",["Genom att växla mellan snabbt och lugnt","Genom att alltid spela på max hastighet","Genom att alltid spela så långsamt som möjligt","Genom att aldrig ändra spelstil under en match"],"Växling skapar osäkerhet."],["Varför är det svårt att försvara mot en spelare som varierar sina touches?",["Du kan inte förutse nästa drag och måste reagera","De har alltid mer boost än du i varje situation","Deras bil är alltid snabbare än din bil","Bollen rör sig långsammare för just dem"],"Variation tar bort din förutsägbarhet."],["Vad är en bra princip efter flera missar i rad?",["Förenkla spelet tills du är stabil igen","Försöka fler avancerade moves för att ta igen","Spela bara med boost från och med nu","Stanna helt tills matchen är slut"],"Stabilitet först."],["Hur minskar du chansen att motståndaren läser dig?",["Variera dina mönster med kontroll","Alltid göra exakt samma sak","Aldrig röra bollen de första 30 sekunderna","Låsa kameran mot motståndaren hela matchen"],"Variation med kontroll."],["Vad innebär optimerad boostanvändning på hög nivå?",["Att ha rätt boost vid rätt tillfälle","Att alltid ha full tank oavsett läge","Att aldrig ta små pads","Att alltid använda boost vid varje touch"],"Boost är en resurs att planera."],["Hur bör du reagera när motståndaren spelar mycket defensivt?",["Ha tålamod och vänta på rätt läge","Gå in med full fart varje gång","Byta spelstil mitt i matchen","Ge upp pressen helt"],"Tvingade skott ger bort bollen."],["Varför analyserar man sina egna beslut efter en match på hög nivå?",["För att hitta små misstag som kostar poäng","För att räkna antal mål i varje halvlek","För att jämföra rank med en annan spelare","För att förbättra kamerainställningen"],"Små fel blir stora över tid."],["Hur kombinerar du mekanik och beslutsfattande?",["Använd mekanik när läget kräver den","Använd alltid den svåraste mekaniken","Undvik mekanik helt i ranked","Byt mekanik varje match"],"Rätt verktyg för rätt läge."]]];
+function QS(){return S.quiz||(S.quiz={best:{},plays:0,right:0})}
+const shuf=a=>a.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+let Q=null;
+function startQuiz(g,n){
+  const pool=quizPool(g,n);
+  Q={g,n,i:0,score:0,sel:null,wrong:[],qs:shuf(pool).map(q=>({q:q[0],o:shuf(q[1].map((t,i)=>({t,ok:i===0}))),e:q[2],a:q[1][0]}))};
+  renderQ();
+}
+const qTitle=(g,n)=>g==="mix"?"Blandat":GN[+g]+" · Quiz "+(n+1);
+const qKey=(g,n)=>S.mode+"|"+(g==="mix"?"mix":g+"."+n);
+function renderQ(){
+  const B=$("qBody");
+  if(!Q){
+    const st=QS(),mine=curG(),bt=(g,n)=>{const b=st.best[qKey(g,n)];return b?b.s+"/"+b.n:"–"};
+    B.innerHTML='<section class="card"><h2>Välj quiz</h2><p class="empty" style="font-size:14px;margin:0 0 4px">Tre quiz per rank i '+MODEN[S.mode]+', fem frågor var. Välj din egen rank eller en högre för att se vad som väntar.</p>'
+    +GN.map((nm,i)=>'<div class="qrow"><b>'+nm+(i===mine?" · din rank":"")+'</b><div class="qbtns">'+[0,1,2].map(n=>'<button data-a="start" data-g="'+i+'" data-n="'+n+'"><span>Quiz '+(n+1)+'</span><span class="mn">Bäst: '+bt(i,n)+'</span></button>').join("")+'</div></div>').join("")
+    +'<div class="qrow"><b>Blandat</b><div class="qbtns"><button data-a="start" data-g="mix"><span>10 frågor</span><span class="mn">Bäst: '+bt("mix",0)+'</span></button></div></div></section>'
+    +'<p class="empty" style="font-size:14px">Quiz spelade: '+st.plays+' · Rätta svar totalt: '+st.right+'</p>';
+    return;
+  }
+  if(Q.i>=Q.qs.length){
+    const st=QS(),cnt=Q.qs.length,pct=Math.round(Q.score/cnt*100),kk=qKey(Q.g,Q.n);
+    if(!st.best[kk]||Q.score/cnt>st.best[kk].s/st.best[kk].n)st.best[kk]={s:Q.score,n:cnt};
+    if(!Q.done){Q.done=1;st.plays++;st.right+=Q.score;save()}
+    B.innerHTML='<section class="card"><h2>'+qTitle(Q.g,Q.n)+'</h2><div class="ringrow"><div class="ring" style="--p:'+pct+'"><span>'+Q.score+"/"+cnt+'</span></div><div><b>'+(pct>=90?"Fantastiskt!":pct>=60?"Bra jobbat!":"Bra försök!")+'</b><p class="empty" style="margin:4px 0 0;font-size:14px">'+(pct>=90?"Du kan det här.":pct>=60?"Du är på god väg.":"Ta en titt på träningspassen och försök igen.")+'</p></div></div></section>'
+    +(Q.wrong.length?'<section class="card"><h2>Det här missade du</h2><ul class="ins">'+Q.wrong.map(w=>'<li><b>'+esc(w.q)+'</b><br>Rätt svar: '+esc(w.a)+'</li>').join("")+'</ul></section>':"")
+    +'<div class="row"><button data-a="again">Spela igen</button><button data-a="home">Välj annat quiz</button></div>';
+    return;
+  }
+  const q=Q.qs[Q.i],ans=Q.sel!==null;
+  B.innerHTML='<div class="lbl"><span>'+qTitle(Q.g,Q.n)+'</span><span>Fråga '+(Q.i+1)+" av "+Q.qs.length+'</span></div><div class="sbar"><i style="width:'+(Q.i/Q.qs.length*100)+'%"></i></div>'
+  +'<section class="card"><h2 style="font-size:19px;line-height:1.3">'+esc(q.q)+'</h2>'
+  +q.o.map((o,i)=>'<button class="qopt'+(ans&&o.ok?" ok":ans&&i===Q.sel?" no":"")+'" data-a="ans" data-i="'+i+'"'+(ans?" disabled":"")+'><span>'+esc(o.t)+'</span></button>').join("")
+  +(ans?'<p style="margin:14px 0 0"><b>'+(q.o[Q.sel].ok?"Rätt!":"Fel.")+'</b> '+esc(q.e)+'</p>':"")+'</section>'
+  +(ans?'<button class="cta" data-a="next">'+(Q.i+1>=Q.qs.length?"Se resultat":"Nästa fråga")+'</button>':"");
+}
+$("qBody").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-a]");if(!b)return;const a=b.dataset.a;
+  if(a==="start")startQuiz(b.dataset.g,b.dataset.n===undefined?0:+b.dataset.n);
+  else if(a==="ans"){if(Q.sel!==null)return;Q.sel=+b.dataset.i;const o=Q.qs[Q.i].o[Q.sel];if(o.ok)Q.score++;else Q.wrong.push(Q.qs[Q.i]);renderQ();return}
+  else if(a==="next"){Q.i++;Q.sel=null;renderQ();window.scrollTo(0,0);return}
+  else if(a==="again")startQuiz(Q.g,Q.n);
+  else if(a==="home"){Q=null;renderQ()}
+  window.scrollTo(0,0);
+});
+$("quizBtn").onclick=()=>{$("vTrain").hidden=true;$("vQuiz").hidden=false;Q=null;renderQ();window.scrollTo(0,0)};
+$("qBack").onclick=()=>{$("vQuiz").hidden=true;$("vTrain").hidden=false;window.scrollTo(0,0)};
+function GM(){return S.games.filter(x=>(x.p||"2")===S.mode)}
+function RNK(){return S.ranks[S.mode]}
+function RLG(){return S.rankLogs[S.mode]}
+const MQ={"1":[
+[["Du har 20 boost, motståndaren 70 och bollen är neutral. Vad är rimligast i 1v1?",["Ta små pads och spela säkert tills boosten är jämnare","Gå på bollen direkt eftersom första touch alltid vinner","Åka mot deras mål och pressa med den boost du har","Stanna i målet och spara boosten tills de skjuter"],"I 1v1 betyder mer boost att du kan välja takten."],
+["Varför är en kontrollerad touch ofta bättre än ett hårt skott från mitten?",["Du behåller bollen och kan följa upp, medan skottet ger bort den","Hårda skott kostar dubbelt så mycket boost som lugna touches","Kontrollerade touches ger extra boost för varje träff på bollen","Hårda skott från mitten når aldrig fram till målet i 1v1"],"Ett missat skott ger motståndaren ofta ett lätt anfall."],
+["Vad är huvudmålet med din kickoff i 1v1?",["Att vinna eller neutralisera bollen utan att ge en chans","Att alltid skjuta rakt mot målet med full kraft direkt","Att ta alla tre boostpads innan du rör bollen alls","Att stanna i målet och låta motståndaren komma till dig"],"En säker kickoff ger dig kontroll över nästa boll."],
+["Du släpper in ett mål efter ett misstag. Vad hjälper mest inför nästa kickoff?",["Att landa, andas och spela kickoffen enligt plan","Att ta mer risk för att få tillbaka målet snabbt","Att byta kamera för att få bättre överblick över planen","Att använda all boost direkt för att kompensera förlusten"],"Tilt ger fler misstag, och det kostar mer än ett mål."],
+["Vad är största risken med att gå på bollen utan boost i 1v1?",["Du tappar tempo och motståndaren får fri boll bakom dig","Du kan bli demolerad av din egen bil om du hoppar för tidigt","Bollen studsar åt fel håll när du saknar boost i tanken","Du får mindre poäng även om du gör mål utan boost"],"Boost är din marginal för att kunna rätta till misstag."]],
+[["Varför är boostkontroll så viktigt i 1v1?",["Den som har mer boost kan välja att pressa eller försvara","Den som har mer boost får fler poäng för varje mål","Boost gör att bollen studsar högre i riktning mot dig","Boost återställs för hela laget vid varje touch på bollen"],"Boost ger dig val, och val ger kontroll."],
+["Vad menas med att kontrollera tempot i 1v1?",["Att styra takten genom boost och bollkontroll","Att alltid spela så fort som möjligt för att trötta ut dem","Att aldrig röra bollen för att spara boost till senare","Att pausa spelet för att nollställa motståndarens boost"],"Den som styr tempot styr vilka misstag som blir möjliga."],
+["När är det rätt att utmana motståndaren i 1v1?",["När du har boost och position att neutralisera bollen","Alltid när bollen är nära ditt mål, oavsett din boost","Bara på kickoff och aldrig under resten av matchen","När du har mindre boost än motståndaren så att de inte hinner reagera"],"Annars skuggar du och väntar på ett misstag."],
+["Varför kan det vara fel att skjuta vid första chansen?",["Ett svagt skott ger bort bollen, kontroll ger ofta bättre läge","Skott kostar extra boost om bollen inte är i luften när du slår","Skott från mitten räknas bara som mål om motståndaren är nära","Det är bara tillåtet att skjuta efter att du rört bollen tre gånger"],"Ett genomtänkt skott slår ett hastigt."],
+["Du missar en aerial och landar långt från bollen. Vad är viktigast härnäst?",["Ta tillbaka position mellan bollen och målet och ta boost","Försöka en ny aerial direkt innan bollen studsar bort","Stanna kvar och vänta tills motståndaren själv missar","Åka rakt mot motståndarens mål för att försöka kontra"],"Recovery går före att rätta till misstaget."]],
+[["Hur bygger du ett övertag i 1v1 utan onödiga risker?",["Genom att kontrollera boost och bollen tills motståndaren gör fel","Genom att alltid försöka avancerade moves för att överraska dem","Genom att undvika bollen tills motståndaren tappar tålamodet","Genom att alltid pressa med all boost för att tvinga fram fel"],"Övertag kommer från kontroll, inte från risk."],
+["Varför använder bra spelare olika kickoffs i 1v1?",["För att motståndaren inte ska kunna förutse vart bollen går","För att varje kickoff ger olika mycket boost i början","För att reglerna kräver att man växlar mellan sidorna","För att bollen väger olika mycket beroende på kickoff"],"Ett förutsägbart spel är lätt att straffa."],
+["Vad är kärnan i bra 1v1-försvar?",["Att skugga, ta tid och tvinga fram ett svagt skott","Att rusa in för att hinna före varje touch från dem","Att stanna i målet och vänta in skottet från dem","Att demolisha anfallaren så snabbt det bara går"],"Tid och position slår desperata utmaningar."],
+["Vad innebär en bait i 1v1?",["Att se sårbar ut så motståndaren committar och straffas","Att skjuta svagt mot målet för att få motståndaren att missa","Att lämna bollen medvetet för att kunna fylla boost","Att demolisha motståndaren efter att de passerat mittlinjen"],"Du vinner initiativet när motståndaren har valt fel."],
+["Vad är ett tecken på god boostdisciplin i 1v1?",["Du går sällan under 30 boost när du går på bollen","Du tar alltid stora pads oavsett var bollen är på planen","Du använder all boost vid kickoff för att få ett övertag","Du undviker alla pads på motståndarens sida av planen"],"Disciplin gör att du kan agera i stället för att reagera."]]],
+"3":[
+[["Hur fördelar ni rollerna i en grundläggande rotation i 3v3?",["Första man pressar, andra stöttar och tredje täcker målet","Alla tre går på bollen för att pressa så hårt som möjligt","En går på bollen medan de andra två står kvar i målet","Rollerna byts vid varje touch oavsett var bollen är"],"Tre tydliga roller minskar dubbelgång."],
+["Varför blir det problem om två lagkamrater går på samma boll?",["Båda hamnar ur position och försvaret blir öppet","Bollen blir tyngre när två bilar träffar den samtidigt","Ni får mindre boost eftersom bilarna delar samma pad","Båda bilarna demolishas automatiskt av kollisionen"],"Dubbelgång ger motståndaren öppna mål."],
+["Vad är tredje mans roll, och vad kostar det om den glöms bort?",["Täcka bakåt, och motståndaren får öppen väg om den glöms","Pressa högst upp, och ni tappar boost om den glöms","Ta kickoffen, och ni förlorar kamerasynen om den glöms","Stå i målet, och motståndaren får fler pads om den glöms"],"Tredje man är lagets säkring."],
+["Vilken kommunikation hjälper mest mot dubbelgång i 3v3?",["Korta tydliga signaler om att du tar bollen eller försvarar","Långa förklaringar om vad alla andra borde göra i stället","Samma signal hela matchen oavsett vad som händer","Att tysta lagkamraterna för att slippa bli störd av dem"],"Tydlighet går före mängd."],
+["Varför är det viktigt att hålla avstånd till lagkamraterna?",["Ni täcker olika ytor och är svårare att passera","Avståndet ger mer boost till hela laget för varje touch","Bilarna kan inte kollidera om de är långt isär","Bollen väger mindre om avståndet mellan er är stort"],"Spridning ger bättre täckning."]],
+[["Vad menas med spacing i 3v3?",["Att hålla lagom avstånd så ni täcker olika delar av planen","Att hålla samma hastighet som lagkamraterna hela matchen","Att spara plats vid boostpads åt lagkamraterna","Att ha samma kamerainställning som resten av laget"],"God spacing gör er svåra att spela förbi."],
+["Varför kan en passning vara bättre än ett eget skott i 3v3?",["Försvarare hinner täcka ett skott men inte en snabb passning","En passning ger alltid dubbelt så många poäng som skott","Ett skott kan aldrig träffa målet i 3v3 på hög nivå","Passningar kostar ingen boost så de är alltid bättre"],"Tre försvarare är svårare att skjuta förbi än två."],
+["Vad är andra mans huvuduppgift?",["Att stötta första man och vara redo för retur eller roll","Att gå på bollen vid sidan av första man hela tiden","Att stå i målet tills bollen är nära i fem sekunder","Att ta all boost på planen åt resten av laget"],"Andra man håller pressen igång utan att dubbla första man."],
+["Hur undviker du att hamna utanför spel efter en offensiv touch i 3v3?",["Rotera tillbaka via sidan, ta boost och ta nästa roll","Stanna vid motståndarens mål och vänta på nästa boll","Åka rakt över mitten för att vara snabbast tillbaka","Boosta upp i taket för att få en bra överblick"],"Rotation är det som håller formen."],
+["Varför behöver tredje man ofta ha mer boost än de andra?",["För att reagera snabbt på en tappad boll utan att ta pads","För att kunna demolisha oftare än de andra i laget","För att få högre fart på kickoff än de andra två","För att boostpads fylls på snabbare vid egna målet"],"Du ska kunna agera direkt när något går fel."]],
+[["Vad är viktigast att hålla när motståndaren pressar hårt i 3v3?",["Rotationen och lugnet så ni inte hamnar i samma yta","Att alla går på bollen för att bryta pressen direkt","Att alla backar in i målet och stänger det helt","Att byta ut spelare mitt i matchen för ny energi"],"Panikspel ger öppna mål."],
+["Vad innebär det att läsa lagkamratens nästa touch?",["Att förutse var bollen hamnar så du kan stötta i tid","Att titta på lagkamratens replay efter matchen","Att kopiera lagkamratens rörelser i luften exakt","Att följa lagkamratens kamerariktning hela tiden"],"Du är på rätt plats redan innan bollen kommer."],
+["Vad kännetecknar en bra passning i 3v3?",["Rätt fart och vinkel så mottagaren kan skjuta direkt","Så hård som möjligt för att komma fram snabbare","Alltid bakåt för att inte tappa bollen i onödan","Alltid mot väggen så att den studsar tillbaka igen"],"Tajming och fart avgör mer än kraft."],
+["Hur skapar ni överläge genom boost i 3v3?",["Dela upp pads så alla har boost och ta motståndarens","En spelare tar alla pads och de andra inga alls","Alla ignorerar boost och spelar bara med flip","Alla undviker stora pads för att inte slösa boost"],"Boost som delas ger fler alternativ för hela laget."],
+["Varför är små kommunikationssignaler extra viktiga på hög nivå?",["De undviker dubbelgång och ger exakt timing","De ger mer boost vid varje kickoff i matchen","De gör bollen långsammare när den är i luften","De ersätter behovet av rotation helt och hållet"],"Små signaler sparar sekunder."]]]};
+function quizPool(g,n){
+  const m=S.mode,ok=q=>q[0].indexOf("2v2")<0&&(m!=="1"||(q[0].toLowerCase().indexOf("lagkamrat")<0&&q[0].toLowerCase().indexOf("rotation")<0));
+  if(g==="mix"){
+    if(m==="2")return shuf([...QZ.flat(),...GN2.flat()]).slice(0,10);
+    return shuf([...QZ.flat().filter(ok),...GN2.flat(),...MQ[m].flat(2)]).slice(0,10);
+  }
+  const gi=+g,base=QZ[gi].concat(GN2[gi]);
+  if(m==="2")return base.slice(n*5,n*5+5);
+  const band=gi<3?0:gi<5?1:2,r=gi-[0,3,5][band],mq0=MQ[m][band],mq=[...mq0.slice(r%mq0.length),...mq0.slice(0,r%mq0.length)];
+  const gs=[[0,3],[3,6],[6,10]][n],ms=[[0,2],[2,4],[4,5]][n];
+  return [...base.filter(ok).slice(gs[0],gs[1]),...mq.slice(ms[0],ms[1])];
+}
+function modeUI(){document.querySelectorAll("#modeNav button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===S.mode))}
+function refresh(){modeUI();render();renderT();renderS();if(!$("vQuiz").hidden){Q=null;renderQ()}}
+$("modeNav").addEventListener("click",e=>{const b=e.target.closest("button[data-m]");if(!b||b.dataset.m===S.mode)return;S.mode=b.dataset.m;save();refresh()});
+$("rkSet").onclick=()=>{pushRank();save();render()};
+function show(v){
+  $("vLog").hidden=v!=="log";$("vTrain").hidden=v!=="train";$("vStats").hidden=v!=="stats";$("vSet").hidden=v!=="set";$("vQuiz").hidden=true;$("modeNav").style.display=v==="set"?"none":"";
+  $("tabLog").setAttribute("aria-selected",v==="log");$("tabTrain").setAttribute("aria-selected",v==="train");$("tabStats").setAttribute("aria-selected",v==="stats");$("tabSet").setAttribute("aria-selected",v==="set");
+  try{localStorage.setItem("rl-tab",v)}catch(e){}
+  if(v==="train")renderT();if(v==="stats")renderS();if(v==="set")renderSet();window.scrollTo(0,0);
+}
+$("tabLog").onclick=()=>show("log");$("tabTrain").onclick=()=>show("train");$("tabStats").onclick=()=>show("stats");$("tabSet").onclick=()=>show("set");
+$("mSel").add(new Option("Fullt pass","long"));$("mSel").add(new Option("Kort pass (ca 30 min)","short"));
+$("mSel").onchange=()=>{S.train.mode=$("mSel").value;save();renderT()};
+$("gSel").add(new Option("Min rank (automatiskt)","auto"));GN.forEach((n,i)=>$("gSel").add(new Option(n,i)));
+$("gSel").onchange=()=>{S.train.view=$("gSel").value;save();renderT()};
+applyCfg();modeUI();render();renderT();
+try{const v=localStorage.getItem("rl-tab");if(v==="train"||v==="stats"||v==="set")show(v)}catch(e){}
+if("serviceWorker" in navigator&&location.protocol.indexOf("http")===0){navigator.serviceWorker.register("sw.js").catch(()=>{})}
+</script>
+</body>
+</html>
